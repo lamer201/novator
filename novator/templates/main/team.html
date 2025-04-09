@@ -1,0 +1,49 @@
+{{ team.name }}
+<br>
+
+Журнал покупок:
+<br>
+{% for pokupka in buy %}
+  <ul>
+    <li>
+     Материал: {{ pokupka.material }}
+    </li>
+    <li>
+      Год  и месяц покупки: {{ pokupka.year }}.{{ pokupka.month }}
+    </li>
+  </ul>
+{% endfor %}
+<br>
+
+Баланс:
+<br>
+{{ balance.money }}
+<br>
+Заказы:
+<br>
+{% for zak in zakaz %}
+  <ul>
+    <li>
+        {{ zak.pk }}
+        {% for v in zak.material.all %}
+        <h5>{{ v.name }}</h5> 
+        {% endfor %}
+        {{ zak.price }}
+    </li>
+  </ul>
+{% endfor %}
+
+
+Запуск ГКС/КС:
+<br>
+{% for zap in zapusk %}
+  <ul>
+    <li>
+     Материал: {{ zap.object }}
+    </li>
+    <li>
+      Год и месяц покупки: {{ zap.year }}
+    </li>
+  </ul>
+{% endfor %}
+<br>

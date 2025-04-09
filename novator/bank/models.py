@@ -8,6 +8,9 @@ class Buy(models.Model):
     year = models.IntegerField(verbose_name='Год покупки')
     month = models.IntegerField(verbose_name='Месяц покупки', null=True)
 
+    def __str__(self):
+        return self.material.name
+
 
 class Balance(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)

@@ -1,0 +1,9 @@
+
+
+{% for team in teams %}
+  <ul>
+    <li>
+        <a href="{% url 'main:team' team.pk %}">{{ team.name }}</a>
+    </li>
+    </ul>
+{% endfor %}

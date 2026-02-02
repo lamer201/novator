@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Teams{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4">Банк</h2>
+</div>
+
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">Список команд</h2>
+
+  </div>
+
+  {% if teams %}
+    <div class="team-row d-flex flex-row flex-nowrap gap-3 overflow-auto py-2 px-1" style="scroll-behavior:smooth;">
+      {% for team in teams %}
+        <div class="card" style="min-width:280px; max-width:320px;">
+          <div class="card-body d-flex align-items-start">
+            <div class="me-3 d-flex align-items-center">
+              {% if team.logo %}
+                <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="rounded" style="width:72px; height:72px; object-fit:cover;">
+              {% else %}
+                <img src="{% static 'img/team.svg' %}" alt="team" class="rounded" style="width:72px; height:72px; object-fit:cover;">
+              {% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <h5 class="card-title mb-1">{{ team['name'] }}</h5>
+              <p class="card-text mb-2 text-muted small">{{ team.description|truncatechars:120|default:"No description." }}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="small text-muted">
+                  {{ team.members.count|default:0 }} members
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if page_obj and page_obj.has_other_pages %}
+      <nav aria-label="Teams pagination" class="mt-3">
+        <ul class="pagination justify-content-center mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}" aria-label="Previous">&laquo;</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+          {% endif %}
+          {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}" aria-label="Next">&raquo;</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  {% else %}
+    <p class="text-muted">No teams found.</p>
+  {% endif %}
+</div>
+
+<style>
+  .team-row::-webkit-scrollbar { height: 10px; }
+  .team-row::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 8px; }
+  .team-row .card { transition: transform .15s ease, box-shadow .15s ease; }
+  .team-row .card:hover { transform: translateY(-6px); box-shadow: 0 .6rem 1rem rgba(0,0,0,.08); }
+</style>
+{% endblock %}

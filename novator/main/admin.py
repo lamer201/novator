@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Category, Material, Team
 
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name',)
+    list_display = ('pk', 'name', 'status',)
     search_fields = ('name',)
     empty_value_display = '-пусто-'
 

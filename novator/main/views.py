@@ -14,12 +14,13 @@ def index(request):
     }
     return render(request, 'main/index.html', context)
 
+@login_required
 def team(request, pk):
     team = get_object_or_404(Team, pk=pk)
-    buy = Buy.objects.filter(team=pk)
-    balance = get_object_or_404(Balance, team=pk)
-    zapusk = Zapusk.objects.filter(team=pk)
-    zakaz = Zakaz.objects.filter(team=pk)
+    buy = Buy.objects.filter(team=team)
+    balance = Balance.objects.get(team=team)
+    zapusk = Zapusk.objects.filter(team=team)
+    zakaz = Zakaz.objects.filter(team=team)
     context = {
         'team': team,
         'buy': buy,

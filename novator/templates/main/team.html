@@ -24,11 +24,7 @@
 {% for zak in zakaz %}
   <ul>
     <li>
-        {{ zak.pk }}
-        {% for v in zak.material.all %}
-        <h5>{{ v.name }}</h5> 
-        {% endfor %}
-        {{ zak.price }}
+        <h5><a href="{% url 'bank:zakaz_detail' zak.id %}"> {{ zak.pk }} </a></h5> 
     </li>
   </ul>
 {% endfor %}

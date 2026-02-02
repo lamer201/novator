@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3>Заказ #{{ zakaz.id }}</h3>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <strong>Команда:</strong> {{ zakaz.team.name }}<br>
+                    <strong>Год:</strong> {{ zakaz.year }}<br>
+                    <strong>Месяц:</strong> {{ zakaz.month }}
+                </div>
+                <div class="col-md-6 text-end">
+                    <strong>Дата создания:</strong> {{ zakaz.created_at|date:"d.m.Y H:i" }}
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Материал</th>
+                            <th>Количество</th>
+                            <th>Цена за единицу</th>
+                            <th>Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.material.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.price }}</td>
+                            <td>{{ item.get_total }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Итого:</strong></td>
+                            <td><strong>{{ zakaz.get_total_sum }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="mt-4">
+                <a href="{% url 'bank:zakaz_list' %}" class="btn btn-secondary">Назад к списку</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Список заказов</h2>
+        <a href="{% url 'bank:create_zakaz' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Новый заказ
+        </a>
+    </div>
+
+    {% if zakazy %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Команда</th>
+                        <th>Год</th>
+                        <th>Месяц</th>
+                        <th>Общая сумма</th>
+                        <th>Оплата</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for zakaz in zakazy %}
+                    <tr>
+                        <td>{{ zakaz.id }}</td>
+                        <td>{{ zakaz.team.name }}</td>
+                        <td>{{ zakaz.year }}</td>
+                        <td>{{ zakaz.month }}</td>
+                        <td>{{ zakaz.get_total_sum }} ₽</td>
+                        <td>{{ zakaz.payment }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'bank:zakaz_detail' zakaz.id %}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Просмотр
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> Список заказов пуст. 
+            <a href="{% url 'bank:create_zakaz' %}" class="alert-link">Создать новый заказ</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Balance, Buy, Zapusk, Zakaz
+from .models import Balance, Buy, Zapusk, Zakaz, ZakazItem
 
 
 class BalanceAdmin(admin.ModelAdmin):
@@ -21,11 +21,15 @@ class ZapuskAdmin(admin.ModelAdmin):
 
 
 class ZakazAdmin(admin.ModelAdmin):
-    list_display=('team', 'price')
-    filter_horizontal = ('material',)
+    list_display=('id','team', 'year', 'month', 'payment', )
+
+
+class ZakazItemAdmin(admin.ModelAdmin):
+   list_display = ('zakaz','material', 'price', 'quantity')
 
 
 admin.site.register(Balance, BalanceAdmin)
 admin.site.register(Buy, BuyAdmin)
 admin.site.register(Zapusk, ZapuskAdmin)
 admin.site.register(Zakaz, ZakazAdmin)
+admin.site.register(ZakazItem, ZakazItemAdmin)

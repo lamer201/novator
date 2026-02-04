@@ -29,7 +29,8 @@ def create_zakaz(request):
             balance = Balance.objects.get(team=team)           
             test_balance = get_sum(form, balance)
             if test_balance == 0:
-                 return HttpResponse("no money no funny!")
+                 payment=False
+            
             # Create new order
             zakaz = Zakaz.objects.create(
                 team=team,
@@ -59,8 +60,17 @@ def create_zakaz(request):
     return render(request, 'bank/zakaz.html', {'form': form})
 
 @login_required
+def zakaz_edit(request, zakaz):
+     
+     pass
+
+
+@login_required
 def zakaz_list(request):
-    zakazy = Zakaz.objects.all().order_by('-id')
+    if request.GET.get('team'):
+        zakazy = Zakaz.objects.filter(team=request.GET.get('team')).order_by('-id')
+    else:
+        zakazy = Zakaz.objects.all().order_by('-id')
     return render(request, 'bank/zakaz_list.html', {'zakazy': zakazy})
 
 @login_required
@@ -71,11 +81,23 @@ def zakaz_detail(request, zakaz_id):
 
 def bank_list(request):
     teams = Team.objects.filter(status=True)
+    
     list_teams = {}
     for team in teams:
+        zakaz = Zakaz.objects.filter(team=team).count
         balance = Balance.objects.get(team=team)
-        list_teams.update({team.pk: {'name': team.name, 'balance': balance.money}})
+        list_teams.update({team.pk: {'name': team.name, 'balance': balance.money, 'zakaz': zakaz}})
     context = {
         'teams': list_teams
     }
     return render(request, 'bank/bank.html', context)
+def team_detail(request, team_id):
+    team = get_list_or_404(Team, pk=team_id)[0]
+    balance = Balance.objects.get(team=team)
+    zakazy = Zakaz.objects.filter(team=team)
+    context = {
+        'team': team,
+        'balance': balance.money,
+        'zakazy': zakazy,
+    }
+    return render(request, 'bank/team_detail.html', context)

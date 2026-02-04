@@ -9,4 +9,6 @@ urlpatterns = [
     path('create_zakaz', views.create_zakaz, name='create_zakaz'),
     path('<int:zakaz_id>/', views.zakaz_detail, name='zakaz_detail'),
     path('zakaz_list/', views.zakaz_list, name='zakaz_list'),
+    path('team/<int:team_id>/', views.team_detail, name='team_detail'),
+    path('<int:zakaz_id>/edit', views.zakaz_edit, name='zakaz_edit'),
 ]

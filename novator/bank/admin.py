@@ -2,6 +2,13 @@ from django.contrib import admin
 from .models import Balance, Buy, Zapusk, Zakaz, ZakazItem
 
 
+STATUS_CHOICES = (
+    ('Создан', 'Создан'),
+    ('В работе', 'В работе'),
+    ('Выдан', 'Выдан'),
+    ('Завершен', 'Завершен'),
+)
+
 class BalanceAdmin(admin.ModelAdmin):
     list_display=('team', 'money', )
     search_fields = ('name',)
@@ -21,7 +28,7 @@ class ZapuskAdmin(admin.ModelAdmin):
 
 
 class ZakazAdmin(admin.ModelAdmin):
-    list_display=('id','team', 'year', 'month', 'payment', )
+    list_display=('id','team', 'year', 'month', 'payment', 'status' )
 
 
 class ZakazItemAdmin(admin.ModelAdmin):

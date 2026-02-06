@@ -1,5 +1,5 @@
 from django.db import models
-from main.models import Team, Material
+from main.models import Status, Team, Material
 
 
 class Buy(models.Model):
@@ -28,6 +28,7 @@ class Zakaz(models.Model):
     year = models.IntegerField(verbose_name='Год заказа')
     month = models.IntegerField(verbose_name='Месяц заказа', null=True)
     payment = models.BooleanField(default=False, verbose_name='Оплачено')
+    status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Статус заказа')
 
     def __str__(self):
         return f"Заказ {self.id} - {self.team.name} - {self.year}"

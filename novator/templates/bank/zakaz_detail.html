@@ -12,7 +12,8 @@
                 <div class="col-md-6">
                     <strong>Команда:</strong> {{ zakaz.team.name }}<br>
                     <strong>Год:</strong> {{ zakaz.year }}<br>
-                    <strong>Месяц:</strong> {{ zakaz.month }}
+                    <strong>Месяц:</strong> {{ zakaz.month }}<br>
+                    <strong>Оплата:</strong> {{ zakaz.payment }}
                 </div>
                 <div class="col-md-6 text-end">
                     <strong>Дата создания:</strong> {{ zakaz.created_at|date:"d.m.Y H:i" }}

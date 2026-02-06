@@ -2,6 +2,12 @@ from django.db import models
 
 # Create your models here.
 
+class Status(models.Model):
+    name = models.CharField(max_length=20, verbose_name='Статус')
+
+    def __str__(self):
+        return self.name
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -29,6 +35,12 @@ class Team(models.Model):
     def __str__(self):
        return str(self.name)
     
-    
+class ItemProperty(models.Model):
+    material = models.ForeignKey(Material, on_delete=models.CASCADE)
+    property_name = models.CharField(max_length=100)
+    property_value = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.material.name} - {self.property_name}: {self.property_value}"
 
 

@@ -28,6 +28,7 @@ class Zakaz(models.Model):
     year = models.IntegerField(verbose_name='Год заказа')
     month = models.IntegerField(verbose_name='Месяц заказа', null=True)
     payment = models.BooleanField(default=False, verbose_name='Оплачено')
+    issued = models.BooleanField(default=False, verbose_name='Выдано')
     status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Статус заказа')
 
     def __str__(self):
@@ -43,6 +44,7 @@ class ZakazItem(models.Model):
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
     price = models.FloatField(max_length=10) 
     quantity = models.IntegerField()
+    koeff = models.FloatField(max_length=10, default=1.0)
 
     def get_total(self):
         return self.quantity * self.price

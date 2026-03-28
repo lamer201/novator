@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Техническое обеспечение{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4">Материально-техническое обеспечение</h2> 
+    <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
+        {% comment %}<a href="{% url 'mtr:sklad' %}" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+         Склад</button></a>
+        <a href="{% url 'mtr:extraditions' %}" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+        Выдача</button></a>
+        <a href="{% url 'mtr:returns' %}" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+        Возврат</button></a>
+        <a href="{% url 'mtr:sklad_teams' 'team_id' %}" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+        Склад команд</button></a> {% endcomment %} 
+    </div>
+</div>
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">Список заказов на выдачу</h2>
+  </div>
+  {% if zakazy %}
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Команда</th>
+            <th>Материал</th>
+            <th>Год</th>
+            <th>Месяц</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for zakaz in zakazy %}
+          <tr>
+            <td>{{ zakaz.id }}</td>
+            <td>{{ zakaz.team.name }}</td>
+            <td>{{ zakaz.material.name }}</td>
+            <td>{{ zakaz.year }}</td>
+            <td>{{ zakaz.month }}</td>
+            <td>
+              <div class="btn-group" role="group">
+                <a href="{% url 'mtr:extradition_detail' zakaz.id %}" class="btn btn-sm btn-primary">
+                  <i class="fas fa-eye"></i> Просмотр
+                </a>
+                </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+  {% endif %}
+    {% if not zakazy %}
+    <p class="text-muted">Заказов на выдачу нет.</p>
+  {% endif %}
+{% endblock %}

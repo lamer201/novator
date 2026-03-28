@@ -29,6 +29,7 @@ class ZapuskAdmin(admin.ModelAdmin):
 
 class ZakazAdmin(admin.ModelAdmin):
     list_display=('id','team', 'year', 'month', 'payment', 'status' )
+    
 
 
 class ZakazItemAdmin(admin.ModelAdmin):

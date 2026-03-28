@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Выдача МТР{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="mb-4">Заказ на выдачу #{{ zakaz.id }}</h2>
+    <div class="row mb-3">
+        <div class="col-md-6">
+        <strong>Команда:</strong> {{ zakaz.team.name }}<br>
+        <strong>Материал:</strong> {{ zakaz.material.name }}<br>
+        <strong>Год:</strong> {{ zakaz.year }}<br>
+        <strong>Месяц:</strong> {{ zakaz.month }}<br>
+        </div>
+        <div class="col-md-6 text-end">
+        <strong>Дата создания:</strong> {{ zakaz.created_at|date:"d.m.Y H:i" }}
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        {% if material %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Материал</th>
+                    <th>Количество</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in material %}
+                <tr>
+                    <td>{{ item.material.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'mtr:shipment' zakaz.id %}" class="btn btn-success">Выдать</a>
+        {% else %}
+        <p class="text-muted">Материал не найден.</p>
+        {% endif %}
+        
+
+        <a href="{% url 'mtr:index' %}" class="btn btn-secondary">Назад к списку</a>
+    </div>
+</div>
+{% endblock %}

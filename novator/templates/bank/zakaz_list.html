@@ -1,6 +1,5 @@
 
 {% extends 'base.html' %}
-{% load static %}
 
 {% block content %}
 <div class="container mt-4">
@@ -19,7 +18,7 @@
                         <th>#</th>
                         <th>Команда</th>
                         <th>Год</th>
-                        <th>Месяц</th>
+                        <th>Статус</th>
                         <th>Общая сумма</th>
                         <th>Оплата</th>
                     </tr>
@@ -30,7 +29,7 @@
                         <td>{{ zakaz.id }}</td>
                         <td>{{ zakaz.team.name }}</td>
                         <td>{{ zakaz.year }}</td>
-                        <td>{{ zakaz.month }}</td>
+                        <td>{{ zakaz.status.name }}</td>
                         <td>{{ zakaz.get_total_sum }} ₽</td>
                         <td>{{ zakaz.payment }}</td>
                         <td>
@@ -40,6 +39,37 @@
                                     <i class="fas fa-eye"></i> Просмотр
                                 </a>
                             </div>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                            {% if zakaz.status.pk == 3 %}
+                                <button class="btn btn-sm btn-secondary" disabled>
+                                    <i class="fas fa-edit"></i> Редактировать   
+                                </button>
+                            {% elif zakaz.status.pk == 4 %}
+                                <button class="btn btn-sm btn-secondary" disabled>
+                                    <i class="fas fa-edit"></i> Редактировать   
+                                </button>
+                            {% else %}
+                                <a href="{% url 'bank:zakaz_edit' zakaz.id %}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i> Редактировать
+                                </a>
+                            {% endif %}
+                            </div>
+                            <div class="btn-group" role="group">
+                            <form action="{% url 'bank:zakaz_otmena' zakaz.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            {% if zakaz.status.pk == 4 %}
+                            <button type="submit" class="btn btn-secondary" disabled>Отменён</button>
+                            {% elif zakaz.status.pk == 3 %}
+                            <button type="submit" class="btn btn-secondary" disabled>Отменить</button>
+                            {% else %}
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Отменить заказ #{{ zakaz.id }}?');">Отменить</button>
+                            {% endif %}
+                            </form>    
+                            </div>
+                            
                         </td>
                     </tr>
                     {% endfor %}

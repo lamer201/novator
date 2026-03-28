@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3>Редактирование заказа #{{ zakaz.id }}</h3>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+            <div>
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <strong>Команда:</strong> {{ zakaz.team.name }}
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Материал</th>
+                                <th>Количество</th>
+                                <th>Цена за единицу</th>
+                                <th>Коэффициент</th>
+                                <th>Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>{{ item.material.name }}</td>
+                                <td><input name="qty_{{ item.pk }}" value="{{ item.quantity }}" class="form-control" /></td>
+                                <td><input name="price_{{ item.pk }}" value="{{ item.price|floatformat:0 }}" class="form-control" /></td>
+                                <td>{{ item.koeff }}</td>
+                                <td>{{ item.get_total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" value="on" id="payment" name="payment" {% if zakaz.payment %}checked{% endif %}>
+                    <label class="form-check-label" for="payment">Оплачено</label>
+                </div>
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" value="on" id="issued" name="issued" {% if zakaz.issued %}checked{% endif %}>
+                    <label class="form-check-label" for="issued">Выдано</label>
+                </div>
+
+                <div class="mb-3">
+                    <label for="status">Статус</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">-- оставить без изменений --</option>
+                        {% for s in statuses %}
+                        <option value="{{ s.pk }}" {% if zakaz.status and zakaz.status.pk == s.pk %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mt-3">
+                    <button class="btn btn-primary" type="submit">Сохранить</button>
+                    <a class="btn btn-secondary" href="{% url 'bank:zakaz_detail' zakaz.pk %}">Отмена</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

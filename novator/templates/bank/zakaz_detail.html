@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block content %}
+
+
+
 <div class="container mt-4">
     <div class="card">
         <div class="card-header">
@@ -13,7 +15,9 @@
                     <strong>Команда:</strong> {{ zakaz.team.name }}<br>
                     <strong>Год:</strong> {{ zakaz.year }}<br>
                     <strong>Месяц:</strong> {{ zakaz.month }}<br>
-                    <strong>Оплата:</strong> {{ zakaz.payment }}
+                    <strong>Оплата:</strong> {{ zakaz.payment }}<br>
+                    <strong>Выдано:</strong> {{ zakaz.issued }}<br>
+                    <strong>Статус:</strong> {{ zakaz.status.name }}
                 </div>
                 <div class="col-md-6 text-end">
                     <strong>Дата создания:</strong> {{ zakaz.created_at|date:"d.m.Y H:i" }}
@@ -27,6 +31,7 @@
                             <th>Материал</th>
                             <th>Количество</th>
                             <th>Цена за единицу</th>
+                            <th>Коэффициент</th>
                             <th>Сумма</th>
                         </tr>
                     </thead>
@@ -36,6 +41,7 @@
                             <td>{{ item.material.name }}</td>
                             <td>{{ item.quantity }}</td>
                             <td>{{ item.price }}</td>
+                            <td>{{ item.koeff }}</td>
                             <td>{{ item.get_total }}</td>
                         </tr>
                         {% endfor %}
@@ -48,7 +54,11 @@
                     </tfoot>
                 </table>
             </div>
-
+            <div class="mt-4">
+                {% if zakaz.status.pk != 4 %}
+                <a href="{% url 'bank:zakaz_edit' zakaz.id %}" class="btn btn-success">Редактировать</a>
+                {% endif %}
+            </div>
             <div class="mt-4">
                 <a href="{% url 'bank:zakaz_list' %}" class="btn btn-secondary">Назад к списку</a>
             </div>

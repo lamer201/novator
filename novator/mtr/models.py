@@ -22,7 +22,7 @@ class Sklad(models.Model):
 
 
 
-class Material(models.Model):
+""" class Material(models.Model):
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
     sklad = models.ForeignKey(Sklad, on_delete=models.CASCADE)
 
@@ -32,7 +32,7 @@ class Material(models.Model):
 
 
     def __str__(self):
-        return self.material.name
+        return self.material.name """
 
 
 
@@ -124,7 +124,7 @@ class Shipment(models.Model):
         if self.from_warehouse == self.to_warehouse:
             raise ValidationError("Склад отгрузки и склад получения не могут совпадать.")
 
-    #@transaction.atomic
+    @transaction.atomic
     def perform_shipment(self):
         """
         Выполняет перемещение:
@@ -136,9 +136,9 @@ class Shipment(models.Model):
         self.full_clean()  # вызовет clean() и другие валидации
 
         # Блокируем записи Stock для обновления, чтобы избежать гонок
-        from_stock = Stock.objects.get(
+        from_stock = Stock.objects.select_for_update().get(
             warehouse=self.from_warehouse,
-            material=self.material
+            material=self.material  
         )
         if from_stock.quantity < self.quantity:
             raise ValidationError(

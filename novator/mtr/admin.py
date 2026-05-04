@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Extradition, Sklad, Material, Stock, Shipment
+from .models import Extradition, Sklad,  Stock, Shipment
 
 
 class ExtraditionAdmin(admin.ModelAdmin):
@@ -14,10 +14,10 @@ class SkladAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-class MaterialAdmin(admin.ModelAdmin):
+""" class MaterialAdmin(admin.ModelAdmin):
     list_display = ('pk', 'material', 'sklad')
     search_fields = ('material__material__name',)
-    empty_value_display = '-пусто-'
+    empty_value_display = '-пусто-' """
 
 
 class StockAdmin(admin.ModelAdmin):
@@ -33,6 +33,6 @@ class ShipmentAdmin(admin.ModelAdmin):
 
 admin.site.register(Extradition, ExtraditionAdmin)
 admin.site.register(Sklad, SkladAdmin)
-admin.site.register(Material, MaterialAdmin)
+#admin.site.register(Material, MaterialAdmin)
 admin.site.register(Stock, StockAdmin)
 admin.site.register(Shipment, ShipmentAdmin)

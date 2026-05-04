@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 from .models import Extradition, Sklad, Shipment, Material, Stock
+from main.models import Status
 from bank.models import Zakaz, ZakazItem
 from django.core.exceptions import ValidationError
 
@@ -54,6 +56,9 @@ def sklad_teams(request, pk) :
 
 def shipment(request, pk):
     zakaz = Zakaz.objects.get(pk=pk)
+    if zakaz.issued == True:
+        messages.error(request, 'Перемещение уже совершено измените статус заказа вручную.')
+        return render(request, 'mtr/index.html')
     material = ZakazItem.objects.filter(zakaz=zakaz)
     sklad_from = Sklad.objects.get(slug='sklad-1')
     sklad_to = Sklad.objects.get(team=zakaz.team)
@@ -74,5 +79,6 @@ def shipment(request, pk):
             print("Ошибка:", e)
 
     zakaz.issued = True
+    zakaz.status = Status.objects.get(pk=3)
     zakaz.save()
     return render(request, 'mtr/index.html')

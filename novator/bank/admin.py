@@ -33,7 +33,7 @@ class ZakazAdmin(admin.ModelAdmin):
 
 
 class ZakazItemAdmin(admin.ModelAdmin):
-   list_display = ('zakaz','material', 'price', 'quantity')
+   list_display = ('zakaz','material', 'price', 'quantity', 'koeff', 'refund')
 
 
 admin.site.register(Balance, BalanceAdmin)

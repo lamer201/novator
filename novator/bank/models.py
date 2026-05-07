@@ -45,6 +45,7 @@ class ZakazItem(models.Model):
     price = models.FloatField(max_length=10) 
     quantity = models.IntegerField()
     koeff = models.FloatField(max_length=10, default=1.0)
+    refund = models.BooleanField(default=False, verbose_name='Возврат')
 
     def get_total(self):
         return self.quantity * self.price

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormKSGRS
 from .models import Balance, Buy, Team, Zakaz, Material, ZakazItem, Status
+from mtr.models import Sklad, Stock
 from .func import get_sum, check_balance, make_zakaz
 
 User = get_user_model()
@@ -266,8 +267,10 @@ def bank_list(request):
         zakaz = Zakaz.objects.filter(team=team).count
         balance = Balance.objects.get(team=team)
         list_teams.update({team.pk: {'name': team.name, 'balance': balance.money, 'zakaz': zakaz}})
+    new_zakaz = Zakaz.objects.filter(status=1)
     context = {
-        'teams': list_teams
+        'teams': list_teams,
+        'new_zakazs': new_zakaz
     }
     return render(request, 'bank/bank.html', context)
 
@@ -301,4 +304,11 @@ def team_detail(request, team_id):
     }
     return render(request, 'bank/team_detail.html', context)
 
-
+@login_required
+def zakaz_kapremont(request, team_id):
+    team = get_object_or_404(Team, pk=team_id)
+    balance = Balance.objects.get(team=team)
+    items = ZakazItem.objects.filter(zakaz__status__name='Выдан снабженцем', zakaz__team=team)
+    materials = Stock.objects.filter(warehouse__team=team)
+    zakaz_form = ZakazFormTrub()
+    return render(request, 'bank/zakaz_kapremont.html', {'team': team, 'items': items, 'materials': materials, 'balance': balance, 'form': zakaz_form})

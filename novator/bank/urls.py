@@ -16,4 +16,7 @@ urlpatterns = [
     path('zakaz/<int:zakaz_id>/delete/', views.zakaz_delete, name='zakaz_delete'),
     #path('zakaz_add_material/<int:zakaz_id>/', views.zakaz_add_material, name='zakaz_add_material'),
     path('zakaz/<int:zakaz_id>/issued/', views.zakaz_issued, name='zakaz_issued'),
+    #path('zakaz/<int:zakaz_id>/payment/', views.zakaz_payment, name='zakaz_payment'),
+    #path('zakaz/<int:zakaz_id>/refund/', views.zakaz_refund, name='zakaz_refund'),
+    path('zakaz/<int:team_id>/kapremont/', views.zakaz_kapremont, name='zakaz_kapremont'),
 ]

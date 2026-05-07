@@ -4,6 +4,7 @@
 {% block content %}
 <div class="container my-4">
   <h2 class="mb-4">Банк</h2>
+  <h2 class="mb-4">Новый заказ</h2>
 
 <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
 <a href="{% url 'bank:create_zakaz' %}?category=truba" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
@@ -57,6 +58,37 @@
   {% else %}
     <p class="text-muted">No teams found.</p>
   {% endif %}
+</div>
+
+<div class="container my-4">
+  <div class="border rounded p-3 bg-light">
+    <h5 class="mb-1">Заказы</h5>
+    <p class="mb-0 text-muted">Просмотрите и управляйте всеми заказами команд.</p>
+    <a href="{% url 'bank:zakaz_list' %}" class="btn btn-outline-primary mt-3">Все заказы</a>
+  </div>
+    <div class="border rounded p-3 bg-light mt-3">
+      <h5 class="mb-1">Новые заказы</h5>
+      <p class="mb-2 text-muted">Последние поступившие заказы.</p>
+      {% if new_zakazs %}
+        <ul class="list-group list-group-flush">
+          {% for zakaz in new_zakazs %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <div>
+                <a href="{% url 'bank:zakaz_detail' zakaz.id %}" class="fw-bold text-decoration-none">{{ zakaz.title|default:"Заказ №" }}{% if not zakaz.title %}{{ zakaz.id }}{% endif %}</a>
+                <div class="small text-muted">Команда: {{ zakaz.team.name|default:"-" }}</div>
+              </div>
+              <div class="text-end">
+                <div>{{ zakaz.get_total_sum|default:"-" }} ₽</div>
+                <div class="small text-muted">{% if zakaz.created_at %}{{ zakaz.created_at|date:"d.m.Y H:i" }}{% endif %}</div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="mb-0 text-muted">Нет новых заказов.</p>
+      {% endif %}
+    </div>
+    </div>
 </div>
 
 <style>

@@ -57,4 +57,34 @@
     {% if not zakazy %}
     <p class="text-muted">Заказов на выдачу нет.</p>
   {% endif %}
+
+  {% if sklad %}
+  {% with sklad|dictsort:"team.name" as sorted_sklad %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="m-0">Склад</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Материал</th>
+            <th>Количество</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in sklad %}
+          <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.material.name }}</td>
+            <td>{{ item.quantity }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endwith %}
+  {% endif %}
+
+
 {% endblock %}

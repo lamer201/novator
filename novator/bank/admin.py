@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Balance, Buy, Zapusk, Zakaz, ZakazItem
+from .models import Balance, Buy, Zapusk, Zakaz, ZakazItem, Credit, CreditPayment
 
 
 STATUS_CHOICES = (
@@ -28,8 +28,19 @@ class ZapuskAdmin(admin.ModelAdmin):
 
 
 class ZakazAdmin(admin.ModelAdmin):
-    list_display=('id','team', 'year', 'month', 'payment', 'status' )
+    list_display=('id','team', 'year', 'month', 'payment', 'status', 'description')
+    search_fields = ('team', 'status', 'description')
     
+class CreditAdmin(admin.ModelAdmin):
+    list_display=('team', 'amount', 'year', 'percent', 'total_price', 'remains', 'remains_percent')
+    readonly_fields = ('total_price',)
+    search_fields = ('team', )
+    empty_value_display = '-пусто-'
+
+class CreditPaymentAdmin(admin.ModelAdmin):
+    list_display=('credit', 'amount', 'year', )
+    search_fields = ('team', )
+    empty_value_display = '-пусто-'
 
 
 class ZakazItemAdmin(admin.ModelAdmin):
@@ -41,3 +52,5 @@ admin.site.register(Buy, BuyAdmin)
 admin.site.register(Zapusk, ZapuskAdmin)
 admin.site.register(Zakaz, ZakazAdmin)
 admin.site.register(ZakazItem, ZakazItemAdmin)
+admin.site.register(Credit, CreditAdmin)
+admin.site.register(CreditPayment, CreditPaymentAdmin)

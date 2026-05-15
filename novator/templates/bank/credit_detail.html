@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Детали кредита{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="mb-4">Детали кредита для команды {{ credit.team.name }}</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Сумма кредита:</strong> {{ credit.amount|floatformat:0 }} ₽</p>
+            <p><strong>Год кредита:</strong> {{ credit.year }}</p>
+            <p><strong>Процентная ставка:</strong> {{ credit.percent|floatformat:2 }} %</p>
+            <p><strong>Остаток по телу кредита:</strong> {{ credit.remains|floatformat:0 }} ₽</p>
+            <p><strong>Остаток по процентам:</strong> {{ credit.remains_percent|floatformat:0 }} ₽</p>
+            <p><strong>Всего к оплате:</strong> {{ credit.total_price|floatformat:0 }} ₽</p>
+        </div>
+    </div>
+
+    <h3 class="mb-3">Платежи по кредиту</h3>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Год платежа</th>
+                    <th>Сумма платежа</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                <tr>
+                    <td>{{ payment.year }}</td>
+                    <td>{{ payment.amount|floatformat:0 }} ₽</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="text-center">Платежей не найдено</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

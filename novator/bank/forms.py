@@ -70,3 +70,10 @@ class ZakazFormShtraf(forms.Form):
     shtraf_9 = forms.IntegerField(label='Штраф 9', required=False)
     shtraf_10 = forms.IntegerField(label='Штраф 10', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+
+
+class ZakazFormCredit(forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+    amount = forms.FloatField(label='Сумма кредита', required=True)
+    year = forms.IntegerField(label='Год кредита', required=True)
+    percent = forms.FloatField(label='Процентная ставка', required=True)

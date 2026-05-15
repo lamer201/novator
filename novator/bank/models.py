@@ -1,5 +1,6 @@
 from django.db import models
 from main.models import Status, Team, Material
+from constance import config
 
 
 class Buy(models.Model):
@@ -30,6 +31,7 @@ class Zakaz(models.Model):
     payment = models.BooleanField(default=False, verbose_name='Оплачено')
     issued = models.BooleanField(default=False, verbose_name='Выдано')
     status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Статус заказа')
+    description = models.TextField(blank=True, verbose_name='Описание заказа')
 
     def __str__(self):
         return f"Заказ {self.id} - {self.team.name} - {self.year}"
@@ -49,3 +51,47 @@ class ZakazItem(models.Model):
 
     def get_total(self):
         return self.quantity * self.price
+    
+
+class Credit(models.Model):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    amount = models.FloatField(max_length=10, verbose_name='Сумма кредита')
+    year = models.IntegerField(verbose_name='Год кредита')
+    percent = models.FloatField(max_length=5, verbose_name='Процентная ставка')
+    remains = models.FloatField(max_length=10, verbose_name='Остаток по телу кредита')
+    remains_percent = models.FloatField(max_length=5, verbose_name='Остаток по процентам')
+
+    @property
+    def total_price(self):
+        return self.remains + self.remains_percent
+
+    def __str__(self):
+        return f"Кредит {self.id} - {self.team.name} - {self.amount}"
+    
+    def calculate_remains(self, payments):
+        total_paid = sum(payment.amount for payment in payments)
+        self.remains = max(0, self.amount - total_paid)
+        self.remains_percent = max(0, (self.amount * self.percent / 100) - total_paid * (self.percent / 100))
+
+    def make_payment(self, payment_amount):
+        if payment_amount > self.remains:
+            payment_amount = self.remains
+        self.remains -= payment_amount
+        self.remains_percent -= payment_amount * (self.percent / 100)
+
+    def is_fully_paid(self):
+        return self.remains <= 0 and self.remains_percent <= 0
+    
+    def get_total_payment(self):
+        return self.remains + (self.remains * self.percent / 100)   
+    
+    
+class CreditPayment(models.Model):
+    credit = models.ForeignKey(Credit, on_delete=models.CASCADE)
+    amount = models.FloatField(max_length=10, verbose_name='Сумма платежа')
+    year = models.IntegerField(verbose_name='Год платежа')
+
+    def __str__(self):
+        return f"Платеж {self.id} - Кредит {self.credit.id} - {self.amount}"
+    
+

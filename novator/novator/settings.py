@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'cart',
     'widget_tweaks',
     'debug_toolbar',
+    'constance',
 ]
 
 MIDDLEWARE = [
@@ -143,3 +144,28 @@ LOGGING = {
     },
 }
 """
+
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
+
+CONSTANCE_ADDITIONAL_FIELDS = {
+    'year_choice_field': [
+        'django.forms.fields.ChoiceField',
+        {
+            'widget': 'django.forms.Select',
+            'choices': (
+                ('1', '1 год'),
+                ('2', '2 год'),
+                ('3', '3 год'),
+                ('4', '4 год'),
+            )
+        }
+    ],
+}
+
+CONSTANCE_CONFIG = {
+    'YEAR': (
+        '1',                         # Значение по умолчанию
+        'Год',         # Описание (help text)
+        'year_choice_field'          # Ссылка на наш кастомный тип поля
+    ),
+}

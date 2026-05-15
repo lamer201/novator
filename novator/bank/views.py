@@ -3,10 +3,12 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 from .forms import ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormKSGRS
-from .models import Balance, Buy, Team, Zakaz, Material, ZakazItem, Status
-from mtr.models import Sklad, Stock
+from .models import Balance, Buy, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
+from mtr.models import Sklad, Stock, Shipment
 from .func import get_sum, check_balance, make_zakaz
+from constance import config
 
 User = get_user_model()
 
@@ -305,10 +307,112 @@ def team_detail(request, team_id):
     return render(request, 'bank/team_detail.html', context)
 
 @login_required
+@transaction.atomic
 def zakaz_kapremont(request, team_id):
+    if request.method == 'POST':
+        data = request.POST
+        if not any(str(key).startswith('use_') and value == 'on' for key, value in data.items()) and not any(str(key).startswith('remove_') and value == 'on' for key, value in data.items()):
+            messages.error(request, 'Вы не выбрали ни одного материала для добавления или удаления. Пожалуйста, выберите хотя бы один материал и попробуйте снова.')
+            return redirect('bank:zakaz_kapremont', team_id=team_id)
+        if any(str(key).startswith('use_') and value == 'on' for key, value in data.items()):
+            zakaz= Zakaz.objects.create(
+                            team=Team.objects.get(pk=team_id),
+                            year=config.YEAR,
+                            month=0,
+                            payment=True,
+                            status=Status.objects.get(name='Выдан снабженцем'),
+                            description=f'Заказ на капитальный ремонт команды {Team.objects.get(pk=team_id).name}'
+                        )
+            zakaz.save()
+        for key, value in data.items():
+            if str(key).startswith('use_') and value == 'on':
+                material_id = key.split('_')[1]
+                stock_item = Stock.objects.get(pk=material_id)
+                material = Material.objects.get(pk=stock_item.material.pk)
+                quantity = data.get(f'use_count_{material_id}', 0)
+                try:
+                    if int(quantity) <= 0:
+                        messages.error(request, f'Неверное количество для материала "{material.name}". Пожалуйста, введите положительное целое число.')
+                        return redirect('bank:zakaz_kapremont', team_id=team_id)    
+                    if quantity:
+                        zakaz_item = ZakazItem.objects.create(
+                            zakaz=zakaz,
+                            material=material,
+                            price=material.price,
+                            quantity=int(quantity),
+                            koeff=0.5
+                        )
+                        zakaz_item.save()
+                        messages.info(request, f'Материал "{material.name}" в количестве {quantity} добавлен в заказ № {zakaz.pk} на капитальный ремонт.')
+                except (ValueError, TypeError):
+                    messages.error(request, f'Неверное количество для материала "{material.name}". Пожалуйста, введите положительное целое число.')
+                    return redirect('bank:zakaz_kapremont', team_id=team_id)
+            if str(key).startswith('remove_') and value == 'on':
+                material_id = key.split('_')[1]
+                stock_item = Stock.objects.get(pk=material_id)
+                material_quantity = data.get(f'remove_count_{material_id}', 0)
+                material_mtr = Material.objects.get(pk=stock_item.material.pk)
+                shipment = Shipment(
+                    from_warehouse=stock_item.warehouse,
+                    to_warehouse=Sklad.objects.get(slug='sklad-1'),
+                    material=material_mtr,
+                    quantity=material_quantity,
+                    description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при заказе на капремонт'
+                )
+                messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {material_quantity} получен.')
+                try:
+                    #material = Material.objects.get(pk=stock_item.material.pk)
+                    if stock_item.quantity >= int(material_quantity):
+                        shipment.perform_shipment()
+                        messages.success(request, f'Материал "{material_mtr.name}" в количестве {material_quantity} успешно удалён из заказа на капремонт и возвращён на склад.')
+                        return redirect('bank:zakaz_kapremont', team_id=team_id)
+                    else:                        
+                        messages.error(request, f'Недостаточно материала "{stock_item.material.name}" на складе для удаления.')
+                        return redirect('bank:zakaz_kapremont', team_id=team_id)
+                except (Material.DoesNotExist, Stock.DoesNotExist):
+                    messages.error(request, 'Материал не найден на складе. Пожалуйста, проверьте данные и попробуйте снова.')
+                    return redirect('bank:zakaz_kapremont', team_id=team_id)
+                
+        messages.success(request, 'Заказ на капитальный ремонт сохранён.')
+        return redirect('bank:zakaz_kapremont', team_id=team_id)
     team = get_object_or_404(Team, pk=team_id)
     balance = Balance.objects.get(team=team)
     items = ZakazItem.objects.filter(zakaz__status__name='Выдан снабженцем', zakaz__team=team)
-    materials = Stock.objects.filter(warehouse__team=team)
+    materials = Stock.objects.filter(warehouse__team=team, quantity__gt=0, material__category__pk=1)
     zakaz_form = ZakazFormTrub()
     return render(request, 'bank/zakaz_kapremont.html', {'team': team, 'items': items, 'materials': materials, 'balance': balance, 'form': zakaz_form})
+
+def credit_list(request):
+    credits = Credit.objects.all()
+    return render(request, 'bank/credit_list.html', {'credits': credits})
+
+def credit_detail(request, credit_id):
+    credit = get_object_or_404(Credit, pk=credit_id)
+    payments = CreditPayment.objects.filter(credit=credit)
+    return render(request, 'bank/credit_detail.html', {'credit': credit, 'payments': payments})
+
+def zakaz_credit(request, team_id):
+    team = get_object_or_404(Team, pk=team_id)
+    if request.method == 'POST':
+        amount_val = request.POST.get('amount')
+        try:
+            amount = float(amount_val)
+            if amount <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            messages.error(request, 'Неверная сумма кредита. Пожалуйста, введите положительное число.')
+            return redirect('bank:zakaz_credit', team_id=team.pk)
+
+        credit = Credit.objects.create(
+            team=team,
+            amount=amount,
+            year=config.YEAR,
+            percent=10.0,  # Example fixed interest rate
+            remains=amount,
+            remains_percent=amount * 0.1
+        )
+        credit.save()
+        messages.success(request, f'Кредит на сумму {amount} создан для команды "{team.name}".')
+        return redirect('bank:credit_detail', credit_id=credit.pk)
+
+    return render(request, 'bank/zakaz_credit.html', {'team': team})

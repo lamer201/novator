@@ -2,6 +2,7 @@ from django.shortcuts import get_list_or_404, get_object_or_404, render, redirec
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from .models import Balance, Buy, Team, Zakaz, Material, ZakazItem, Status
+from constance import config
 
 def get_sum(form):
     sum_material=0
@@ -34,7 +35,7 @@ def make_zakaz(form):
     # Create new order
     zakaz = Zakaz.objects.create(
         team=team,
-        year = 1,
+        year = config.YEAR,  # Use the value from Constance
         month = 0,
         payment=payment,
         status=Status.objects.get(name='Создан')

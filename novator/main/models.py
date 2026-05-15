@@ -44,3 +44,9 @@ class ItemProperty(models.Model):
         return f"{self.material.name} - {self.property_name}: {self.property_value}"
 
 
+class Koeff(models.Model):
+    material = models.ForeignKey(Material, on_delete=models.CASCADE)
+    koeff_value = models.FloatField(max_length=10, verbose_name='Коэффициент')
+
+    def __str__(self):
+        return f"{self.material.name} - Коэффициент: {self.koeff_value}"

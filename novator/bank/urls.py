@@ -22,5 +22,5 @@ urlpatterns = [
     path('credits/', views.credit_list, name='credit_list'),
     path('credit/<int:credit_id>/', views.credit_detail, name='credit_detail'),
     #path('credit/<int:credit_id>/payment/', views.credit_payment, name='credit_payment'),
-    path('credit/zakaz_credit/<int:team_id>/', views.zakaz_credit, name='zakaz_credit')
+    path('credit/zakaz_credit/', views.zakaz_credit, name='zakaz_credit')
 ]

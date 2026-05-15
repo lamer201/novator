@@ -11,8 +11,14 @@ from django.core.exceptions import ValidationError
 @login_required
 def index(request):
     zakazy = Zakaz.objects.filter(status__pk=2).filter(payment=True).filter(issued=False)
+    sklad = Sklad.objects.filter(team__isnull=False, is_active=True)
+    materials = []
+    for items in sklad:
+        materials.extend(Stock.objects.filter(warehouse=items))
     context = {
-        'zakazy': zakazy
+        'zakazy': zakazy,
+        'sklad': sklad,
+        'materials': materials
     }
     return render(request, 'mtr/index.html', context)
 
@@ -46,10 +52,14 @@ def extradition_detail(request, pk):
     return render(request, 'mtr/extradition_detail.html', context)
 
 @login_required
-def sklad_teams(request, pk) :
-    sklad = Sklad.objects.get(pk=pk)
+def sklad_teams(request) :
+    sklad = Sklad.objects.filter(team__isnull=False, active=True)
+    materials = []
+    for items in sklad:
+        materials.extend(Stock.objects.filter(sklad=items))
     context = {
         'sklad': sklad,
+        'materials': materials
     }
     return render(request, 'mtr/sklad_teams.html', context)
 

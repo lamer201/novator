@@ -19,4 +19,11 @@ urlpatterns = [
     #path('zakaz/<int:zakaz_id>/payment/', views.zakaz_payment, name='zakaz_payment'),
     #path('zakaz/<int:zakaz_id>/refund/', views.zakaz_refund, name='zakaz_refund'),
     path('zakaz/<int:team_id>/kapremont/', views.zakaz_kapremont, name='zakaz_kapremont'),
+    path('credits/', views.credit_list, name='credit_list'),
+    path('credit/<int:credit_id>/', views.credit_detail, name='credit_detail'),
+    path('credit/<int:credit_id>/payment/', views.make_payment, name='make_payment'),
+    path('credit/new_credit/', views.zakaz_credit, name='new_credit'),
+    path('premia/new_premia/', views.new_premia, name='new_premia'),
+    path('zapusk/new_zapusk/', views.new_zapusk, name='new_zapusk'),
+    path('zapusk_list/', views.zapusk_list, name='zapusk_list'),
 ]

@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Заказ премии{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div class="container my-4">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+    <div class="container my-4">
+    <h2 class="my-4">Начислить премию</h2>
+    <form method="post">
+        <div class="mb-3">
+        </div>
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
+            </div>
+        {% endfor %}
+        <button class="btn btn-success" type="submit">Начислить</button>
+    </form>
+    <div class="mt-5">
+        <h3>История начислений премий</h3>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Команда</th>
+                        <th>Сумма премии</th>
+                        <th>Год премии</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for premia in premii %}
+                    <tr>
+                        <td>{{ premia.team.name }}</td>
+                        <td>{{ premia.amount|floatformat:0 }} ₽</td>
+                        <td>{{ premia.year }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">Премий не найдено</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
+{% endblock %}

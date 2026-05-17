@@ -3,10 +3,13 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormKSGRS
-from .models import Balance, Buy, Team, Zakaz, Material, ZakazItem, Status
-from mtr.models import Sklad, Stock
+from django.db import transaction
+from .forms import PremiaForm, ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormKSGRS, ZakazFormCredit
+from main.models import ItemProperty
+from .models import Balance, Buildings, Buy, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment, Zapusk
+from mtr.models import Sklad, Stock, Shipment
 from .func import get_sum, check_balance, make_zakaz
+from constance import config
 
 User = get_user_model()
 
@@ -305,10 +308,229 @@ def team_detail(request, team_id):
     return render(request, 'bank/team_detail.html', context)
 
 @login_required
+@transaction.atomic
 def zakaz_kapremont(request, team_id):
+    if request.method == 'POST':
+        data = request.POST
+        if not any(str(key).startswith('use_') and value == 'on' for key, value in data.items()) and not any(str(key).startswith('remove_') and value == 'on' for key, value in data.items()):
+            messages.error(request, 'Вы не выбрали ни одного материала для добавления или удаления. Пожалуйста, выберите хотя бы один материал и попробуйте снова.')
+            return redirect('bank:zakaz_kapremont', team_id=team_id)
+        if any(str(key).startswith('use_') and value == 'on' for key, value in data.items()):
+            zakaz= Zakaz.objects.create(
+                            team=Team.objects.get(pk=team_id),
+                            year=config.YEAR,
+                            month=0,
+                            payment=True,
+                            status=Status.objects.get(name='Выдан снабженцем'),
+                            description=f'Заказ на капитальный ремонт команды {Team.objects.get(pk=team_id).name}'
+                        )
+            zakaz.save()
+        for key, value in data.items():
+            if str(key).startswith('use_') and value == 'on':
+                material_id = key.split('_')[1]
+                stock_item = Stock.objects.get(pk=material_id)
+                material = Material.objects.get(pk=stock_item.material.pk)
+                quantity = data.get(f'use_count_{material_id}', 0)
+                try:
+                    if int(quantity) <= 0:
+                        messages.error(request, f'Неверное количество для материала "{material.name}". Пожалуйста, введите положительное целое число.')
+                        return redirect('bank:zakaz_kapremont', team_id=team_id)    
+                    if quantity:
+                        zakaz_item = ZakazItem.objects.create(
+                            zakaz=zakaz,
+                            material=material,
+                            price=material.price,
+                            quantity=int(quantity),
+                            koeff=0.5
+                        )
+                        zakaz_item.save()
+                        messages.info(request, f'Материал "{material.name}" в количестве {quantity} добавлен в заказ № {zakaz.pk} на капитальный ремонт.')
+                except (ValueError, TypeError):
+                    messages.error(request, f'Неверное количество для материала "{material.name}". Пожалуйста, введите положительное целое число.')
+                    return redirect('bank:zakaz_kapremont', team_id=team_id)
+            if str(key).startswith('remove_') and value == 'on':
+                material_id = key.split('_')[1]
+                stock_item = Stock.objects.get(pk=material_id)
+                material_quantity = data.get(f'remove_count_{material_id}', 0)
+                material_mtr = Material.objects.get(pk=stock_item.material.pk)
+                shipment = Shipment(
+                    from_warehouse=stock_item.warehouse,
+                    to_warehouse=Sklad.objects.get(slug='sklad-1'),
+                    material=material_mtr,
+                    quantity=material_quantity,
+                    description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при заказе на капремонт'
+                )
+                messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {material_quantity} получен.')
+                try:
+                    #material = Material.objects.get(pk=stock_item.material.pk)
+                    if stock_item.quantity >= int(material_quantity):
+                        shipment.perform_shipment()
+                        messages.success(request, f'Материал "{material_mtr.name}" в количестве {material_quantity} успешно удалён из заказа на капремонт и возвращён на склад.')
+                        return redirect('bank:zakaz_kapremont', team_id=team_id)
+                    else:                        
+                        messages.error(request, f'Недостаточно материала "{stock_item.material.name}" на складе для удаления.')
+                        return redirect('bank:zakaz_kapremont', team_id=team_id)
+                except (Material.DoesNotExist, Stock.DoesNotExist):
+                    messages.error(request, 'Материал не найден на складе. Пожалуйста, проверьте данные и попробуйте снова.')
+                    return redirect('bank:zakaz_kapremont', team_id=team_id)
+                
+        messages.success(request, 'Заказ на капитальный ремонт сохранён.')
+        return redirect('bank:zakaz_kapremont', team_id=team_id)
     team = get_object_or_404(Team, pk=team_id)
     balance = Balance.objects.get(team=team)
     items = ZakazItem.objects.filter(zakaz__status__name='Выдан снабженцем', zakaz__team=team)
-    materials = Stock.objects.filter(warehouse__team=team)
+    materials = Stock.objects.filter(warehouse__team=team, quantity__gt=0, material__category__pk=1)
     zakaz_form = ZakazFormTrub()
     return render(request, 'bank/zakaz_kapremont.html', {'team': team, 'items': items, 'materials': materials, 'balance': balance, 'form': zakaz_form})
+
+@login_required
+def credit_list(request):
+    credits = Credit.objects.all()
+    return render(request, 'bank/credit_list.html', {'credits': credits})
+
+@login_required
+def credit_detail(request, credit_id):
+    credit = get_object_or_404(Credit, pk=credit_id)
+    payments = CreditPayment.objects.filter(credit=credit)
+    return render(request, 'bank/credit_detail.html', {'credit': credit, 'payments': payments})
+
+@login_required
+@transaction.atomic
+def zakaz_credit(request):
+    if request.method == 'POST':
+        team = Team.objects.get(pk=request.POST.get('team'))
+        amount_val = request.POST.get('amount')
+        percent = request.POST.get('percent', 35)  # Default interest rate if not provided
+        balance = Balance.objects.get(team=team)
+        try:
+            amount = float(amount_val)
+            if amount <= 0:
+                raise ValueError()
+            if balance.money < amount:
+                messages.error(request, 'Недостаточно средств на балансе для получения кредита. Требуется иметь на балансе сумму, равную запрашиваемому кредиту.')
+                return redirect('bank:new_credit')
+        except (ValueError, TypeError):
+            messages.error(request, 'Неверная сумма кредита. Пожалуйста, введите положительное число.')
+            return redirect('bank:new_credit')
+
+        credit = Credit.objects.create(
+            team=team,
+            amount=amount,  # Total amount to be repaid including interest
+            year=config.YEAR,
+            percent=percent,
+            remains=amount* (1 + (float(percent) / 100)),  # Initial remaining amount is the total amount to be repaid
+            #remains_percent=amount * (int(percent) / 100)
+        )
+        credit.save()
+        balance.money += amount
+        balance.save()
+        messages.success(request, f'Кредит на сумму {amount} создан для команды "{team.name}".')
+        return redirect('bank:credit_detail', credit_id=credit.pk)
+    form = ZakazFormCredit()
+    return render(request, 'bank/zakaz_credit.html', {'form': form})
+
+@login_required
+@transaction.atomic
+def make_payment(request, credit_id):
+    credit = get_object_or_404(Credit, pk=credit_id)
+    if request.method == 'POST':
+        payment_amount_val = request.POST.get('payment_amount')
+        balance = Balance.objects.get(team=credit.team)
+        try:
+            payment_amount = float(payment_amount_val)
+            if payment_amount <= 0:
+                raise ValueError()
+            if balance.money < payment_amount:
+                messages.error(request, 'Недостаточно средств на балансе для оплаты кредита. Пожалуйста, пополните баланс и попробуйте снова.')
+                return redirect('bank:credit_detail', credit_id=credit.pk)
+            if payment_amount > credit.remains:
+                messages.error(request, 'Сумма платежа превышает оставшуюся сумму кредита. Пожалуйста, введите корректную сумму.')
+                return redirect('bank:credit_detail', credit_id=credit.pk)
+        except (ValueError, TypeError):
+            messages.error(request, 'Неверная сумма платежа. Пожалуйста, введите положительное число.')
+            return redirect('bank:credit_detail', credit_id=credit.pk)
+
+        # Deduct payment from balance and update credit
+        balance.money -= payment_amount
+        balance.save()
+
+        credit.remains -= payment_amount
+        #credit.remains_percent -= payment_amount * (credit.percent / 100)
+        credit.save()
+
+        CreditPayment.objects.create(
+            credit=credit,
+            amount=payment_amount,
+            year=config.YEAR
+        )
+        if credit.is_fully_paid():  
+            credit.status = 'paid'
+            credit.save()
+        messages.success(request, f'Платеж в размере {payment_amount} успешно произведён по кредиту #{credit.pk}.')
+        return redirect('bank:credit_detail', credit_id=credit.pk)
+        
+
+    return redirect('bank:credit_detail', credit_id=credit.pk)
+
+@login_required
+@transaction.atomic
+def new_premia(request):
+    if request.method == 'POST':
+        team = Team.objects.get(pk=request.POST.get('team'))
+        amount_val = request.POST.get('amount')
+        balance = Balance.objects.get(team=team)
+        try:
+            amount = float(amount_val)
+            if amount <= 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            messages.error(request, 'Неверная сумма премии. Пожалуйста, введите положительное число.')
+            return redirect('bank:new_premia')
+
+        balance.money += amount
+        balance.save()
+        premia = Premia.objects.create(
+            team=team,
+            amount=amount,
+            year=config.YEAR
+        )
+        premia.save()
+        messages.success(request, f'Премия в размере {amount} добавлена на баланс команды "{team.name}".')
+        return redirect('bank:new_premia')
+    form = PremiaForm()
+    teams = Team.objects.filter(status=True)
+    premii = Premia.objects.all()
+    return render(request, 'bank/new_premia.html', {'form': form, 'teams': teams, 'premii': premii})
+
+
+def zapusk_list(request):
+    zapusks = Zapusk.objects.all()
+    return render(request, 'bank/zapusk_list.html', {'zapusks': zapusks})
+
+def zapusk_detail(request, zapusk_id):
+    zapusk = get_object_or_404(Zapusk, pk=zapusk_id)
+    return render(request, 'bank/zapusk_detail.html', {'zapusk': zapusk})
+
+def new_zapusk(request):
+    if request.method == 'POST':
+        team = Team.objects.get(pk=request.POST.get('team'))
+        object_id = request.POST.get('object')
+        koeff_val = request.POST.get('koeff', 1.0)
+        year = config.YEAR
+        try:
+            zapusk = Zapusk.objects.create(
+                team=team,
+                year=year,
+                object=Buildings.objects.get(pk=object_id),
+                koeff=koeff_val,
+                profit=ItemProperty.objects.get(pk=object_id, property_name='cost').property_value)
+            zapusk.save()
+            messages.success(request, f'Запуск объекта "{zapusk.object.name}" для команды "{team.name}" запланирован на {year} год.')
+            return redirect('bank:zapusk_list')
+        except (ValueError, TypeError, Buildings.DoesNotExist):
+            messages.error(request, 'Неверные данные для запуска. Пожалуйста, проверьте введённые данные и попробуйте снова.')
+            return redirect('bank:new_zapusk')
+
+    teams = Team.objects.filter(status=True)
+    buildings = Buildings.objects.all()
+    return render(request, 'bank/new_zapusk.html', {'teams': teams, 'buildings': buildings})

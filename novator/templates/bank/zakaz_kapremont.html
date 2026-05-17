@@ -7,6 +7,16 @@
 {% block content %}
 
 <div class="container my-4">
+    
+  {% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>
+            {{ message }}
+        </li>
+    {% endfor %}
+</ul>
+{% endif %}
   <h2 class="mb-4">Заказ на капитальный ремонт</h2>
 
 <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
@@ -23,6 +33,7 @@
   <label class="form-label me-2">Баланс</label>
   <input type ='text' id="myText" readonly class="form-control w-auto" value="{{ balance.money }} ₽">
   </div>
+
 
   <form method="post" class="needs-validation" novalidate>
     {% csrf_token %}
@@ -54,8 +65,11 @@
       </div>
     {% endif %} {% endcomment %}
     {% if materials %}
+
         <h3 class="mt-4">Доступные материалы</h3>
         <div class="table-responsive">
+        <form method="post">
+        {% csrf_token %}
         <table class="table table-striped">
           <thead>
             <tr>
@@ -84,6 +98,7 @@
       <div class="text-center mt-4">
         <button type="submit" class="btn btn-primary">Сохранить</button>
       </div>
+      </form>
     </div>
     {% endif %}
 

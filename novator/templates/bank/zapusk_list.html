@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Запуски объектов{% endblock %}
+
+{% block content %}   
+   <h1>Список запусков объектов</h1>
+   <table>
+       <thead>
+           <tr>
+               <th>ID</th>
+               <th>Команда</th>
+               <th>Год запуска</th>
+               <th>Объект</th>
+               <th>Коэффициент</th>
+               <th>Прибыль</th>
+           </tr>
+       </thead>
+       <tbody>
+           {% for zapusk in zapusks %}
+               <tr>
+                   <td>{{ zapusk.id }}</td>
+                   <td>{{ zapusk.team }}</td>
+                   <td>{{ zapusk.year }}</td>
+                   <td>{{ zapusk.object }}</td>
+                    <td>{{ zapusk.koeff }}</td>
+                    <td>{{ zapusk.profit }}</td>
+               </tr>
+           {% endfor %}
+       </tbody>
+   </table>
+{% endblock %}

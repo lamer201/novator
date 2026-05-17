@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Новый запуск объекта{% endblock %}
+
+{% block content %}
+   <h1>Создание нового запуска объекта</h1>
+   <form method="post">
+       {% csrf_token %}
+       <label for="team">Команда:</label>
+       <select name="team" id="team">
+           {% for team in teams %}
+               <option value="{{ team.id }}">{{ team.name }}</option>
+           {% endfor %}
+       </select>
+
+       <label for="year">Год запуска:</label>
+       <input type="number" name="year" id="year" required>
+
+       <label for="object">Объект:</label>
+       <select name="object" id="object">
+           {% for building in buildings %}
+               <option value="{{ building.id }}">{{ building.name }}</option>
+           {% endfor %}
+       </select>
+
+       <label for="koeff">Коэффициент:</label>
+       <input type="number" step="0.01" name="koeff" id="koeff" required>
+
+       <label for="profit">Прибыль:</label>
+       <input type="number" step="0.01" name="profit" id="profit" required>
+
+       <button type="submit">Создать запуск</button>
+   </form>
+{% endblock %}

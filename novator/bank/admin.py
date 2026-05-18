@@ -22,7 +22,7 @@ class BuyAdmin(admin.ModelAdmin):
 
 
 class ZapuskAdmin(admin.ModelAdmin):
-    list_display=('team', 'year', 'object', )
+    list_display=('team', 'year', 'object', 'koeff', 'profit_money')
     search_fields = ('team', )
     empty_value_display = '-пусто-'
 

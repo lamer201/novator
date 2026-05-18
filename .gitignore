@@ -1,1 +1,3 @@
 venv
+novatory/db.sqlite3
+*__pycache__

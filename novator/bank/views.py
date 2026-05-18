@@ -517,21 +517,24 @@ def new_zapusk(request):
         object_id = request.POST.get('object')
         koeff_val = request.POST.get('koeff', 1.0)
         year = config.YEAR
+        material = Material.objects.get(pk=object_id)
+        profit = request.POST.get('profit', 0.0)
         try:
             zapusk = Zapusk.objects.create(
                 team=team,
                 year=year,
-                object=Buildings.objects.get(pk=object_id),
+                object=material,
                 koeff=koeff_val,
-                profit=ItemProperty.objects.filter(material=object_id, property_name='cost').first().property_value
+                profit=profit
                 )
             zapusk.save()
             messages.success(request, f'Запуск объекта "{zapusk.object.name}" для команды "{team.name}" запланирован на {year} год.')
             return redirect('bank:zapusk_list')
-        except (ValueError, TypeError, Buildings.DoesNotExist):
+        except (ValueError, TypeError):
             messages.error(request, 'Неверные данные для запуска. Пожалуйста, проверьте введённые данные и попробуйте снова.')
             return redirect('bank:new_zapusk')
 
     teams = Team.objects.filter(status=True)
-    buildings = Buildings.objects.all()
-    return render(request, 'bank/new_zapusk.html', {'teams': teams, 'buildings': buildings, 'year': config.YEAR})
+    buildings = Material.objects.filter(category__pk=7)  # Assuming category 7 corresponds to buildings
+    cost = ItemProperty.objects.filter(material__category__pk=7, property_name='cost')
+    return render(request, 'bank/new_zapusk.html', {'teams': teams, 'buildings': buildings, 'year': config.YEAR, 'cost': cost})

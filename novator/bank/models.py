@@ -30,7 +30,7 @@ class Zapusk(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     year = models.IntegerField(verbose_name='Год запуска')
     #month = models.IntegerField(verbose_name='Месяц запуска' , null=True)
-    object = models.ForeignKey(Buildings, on_delete=models.CASCADE)
+    object = models.ForeignKey(Material, on_delete=models.CASCADE)
     koeff = models.FloatField(max_length=10, default=1.0, verbose_name='Коэффициент запуска')
     profit_money = models.FloatField(max_length=10, default=0.0, verbose_name='Прибыль от запуска')
 

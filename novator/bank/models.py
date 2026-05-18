@@ -15,6 +15,9 @@ class Buy(models.Model):
 class Buildings(models.Model):
     name = models.ForeignKey(Material, on_delete=models.CASCADE, verbose_name='Название объекта', limit_choices_to={'category__pk': 7})
 
+    def __str__(self):
+        return self.name.name
+
 
 
 class Balance(models.Model):

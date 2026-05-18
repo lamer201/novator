@@ -523,7 +523,8 @@ def new_zapusk(request):
                 year=year,
                 object=Buildings.objects.get(pk=object_id),
                 koeff=koeff_val,
-                profit=ItemProperty.objects.get(pk=object_id, property_name='cost').property_value)
+                profit=ItemProperty.objects.filter(material=object_id, property_name='cost').first().property_value
+                )
             zapusk.save()
             messages.success(request, f'Запуск объекта "{zapusk.object.name}" для команды "{team.name}" запланирован на {year} год.')
             return redirect('bank:zapusk_list')
@@ -533,4 +534,4 @@ def new_zapusk(request):
 
     teams = Team.objects.filter(status=True)
     buildings = Buildings.objects.all()
-    return render(request, 'bank/new_zapusk.html', {'teams': teams, 'buildings': buildings})
+    return render(request, 'bank/new_zapusk.html', {'teams': teams, 'buildings': buildings, 'year': config.YEAR})

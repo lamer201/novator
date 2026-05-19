@@ -3,24 +3,22 @@
 {% load static %}
 {% block content %}
 
-
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{{ team.name }} — Team detail</title>
-  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-</head>
-<body class="bg-light">
-  <nav class="navbar navbar-expand-lg navbar-white bg-white shadow-sm">
-    <div class="container">
-      <a class="navbar-brand" href="{% url 'bank:bank_list' %}">Bank</a>
-      <div class="ms-auto">
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'bank:bank_list' %}">Teams</a>
-      </div>
+{% if messages %}
+    <div class="container my-4">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
     </div>
-  </nav>
+  {% endif %}
+
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">{{ team.name }}</h2>
+    <a href="{% url 'bank:bank_list' %}" class="btn btn-link">К списку команд</a>
+  </div>
 
   <main class="container py-4">
     <div class="row justify-content-center">
@@ -81,7 +79,59 @@
               <a href="{% url 'bank:zakaz_kapremont' team.pk %}" class="btn btn-outline-primary">Заказ на капитальный ремонт</a>
               <a href="{% url 'bank:bank_list' %}" class="btn btn-link">К списку команд</a>
             </div>
-          </div>
+            <div class="mt-4">
+              <h5>Объекты</h5>
+              {% if objects %}
+                <div class="table-responsive">
+                  <table class="table table-sm table-striped">
+                    <thead>
+                      <tr>
+                        <th>ID заказа</th>
+                        <th>Материал</th>
+                        <th>Год</th>
+                        <th class="text-end">Коэффициент прибыли</th>
+                        <th class="text-end">Базовая прибыль</th>
+                        <th class="text-end">Итоговая прибыль</th>
+                        <th class="text-end">Действия</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for obj in objects %}
+                        <tr>
+                          <td>{{ obj.zakaz.id }}</td>
+                          <td>{{ obj.material.name }}</td>
+                          <td>{{ obj.zakaz.year }}</td>
+                          <td class="text-end">{{ obj.profit_koeff }}</td>
+                          <td class="text-end">{{ obj.profit_val }}</td>
+                          <td class="text-end">{{ obj.calculate_profit }}</td>
+                          <td class="text-end">
+                          <form method="post" action="{% url 'bank:zapusk_edit' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="zakaz_item" value="{{ obj.pk }}">
+                            <select name="koeff_val" class="form-select form-select-sm d-inline w-auto">
+                              <option value="0.1">0.1</option>
+                              <option value="0.2">0.2</option>
+                              <option value="0.3">0.3</option>
+                              <option value="0.4">0.4</option>
+                              <option value="0.5">0.5</option>
+                              <option value="0.6">0.6</option>
+                              <option value="0.7">0.7</option>
+                              <option value="0.8">0.8</option>
+                              <option value="0.9">0.9</option>
+                              <option value="1.0" selected>1.0</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-danger">Изменить</button>
+                          </form>
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <p class="text-muted">Нет объектов</p>
+              {% endif %}
+            </div>
         </div>
       </div>
     </div>

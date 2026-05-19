@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Balance, Buy, Zapusk, Zakaz, ZakazItem, Credit, CreditPayment, Premia, Buildings, Profit
+from .models import Balance, Zakaz, ZakazItem, Credit, CreditPayment, Premia
 
 
 STATUS_CHOICES = (
@@ -12,18 +12,6 @@ STATUS_CHOICES = (
 class BalanceAdmin(admin.ModelAdmin):
     list_display=('team', 'money', )
     search_fields = ('name',)
-    empty_value_display = '-пусто-'
-
-
-class BuyAdmin(admin.ModelAdmin):
-    list_display=('team', 'material', 'year', 'month', )
-    search_fields = ('team', 'material', )
-    empty_value_display = '-пусто-'
-
-
-class ZapuskAdmin(admin.ModelAdmin):
-    list_display=('team', 'year', 'object', 'koeff', 'profit_money')
-    search_fields = ('team', )
     empty_value_display = '-пусто-'
 
 
@@ -51,22 +39,8 @@ class PremiaAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-class BuildingsAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name', )
-    empty_value_display = '-пусто-'
 
-
-class ProfitAdmin(admin.ModelAdmin):
-    list_display = ('team', 'year', 'amount', 'object')
-    search_fields = ('team', )
-    empty_value_display = '-пусто-'
-
-admin.site.register(Buildings, BuildingsAdmin)
-admin.site.register(Profit, ProfitAdmin)
 admin.site.register(Balance, BalanceAdmin)
-admin.site.register(Buy, BuyAdmin)
-admin.site.register(Zapusk, ZapuskAdmin)
 admin.site.register(Zakaz, ZakazAdmin)
 admin.site.register(ZakazItem, ZakazItemAdmin)
 admin.site.register(Credit, CreditAdmin)

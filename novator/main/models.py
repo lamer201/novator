@@ -1,6 +1,8 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 # Create your models here.
+user = get_user_model()
 
 class Status(models.Model):
     name = models.CharField(max_length=20, verbose_name='Статус')
@@ -50,3 +52,12 @@ class Koeff(models.Model):
 
     def __str__(self):
         return f"{self.material.name} - Коэффициент: {self.koeff_value}"
+    
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(user, on_delete=models.CASCADE)
+    role = models.CharField(max_length=50, verbose_name='Роль пользователя')
+    sklad = models.OneToOneField('mtr.Sklad', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Склад')
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"

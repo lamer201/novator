@@ -59,11 +59,8 @@
   {% endif %}
 
   {% if sklad %}
-  {% with sklad|dictsort:"team.name" as sorted_sklad %}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h2 class="m-0">Склад</h2>
-    </div>
-    <div class="table-responsive">
+    <div class="table-responsive mt-4">
+      <h3>Склад</h3>
       <table class="table table-hover">
         <thead class="table-light">
           <tr>
@@ -83,7 +80,6 @@
         </tbody>
       </table>
     </div>
-  {% endwith %}
   {% endif %}
 
 

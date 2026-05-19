@@ -24,6 +24,5 @@ urlpatterns = [
     path('credit/<int:credit_id>/payment/', views.make_payment, name='make_payment'),
     path('credit/new_credit/', views.zakaz_credit, name='new_credit'),
     path('premia/new_premia/', views.new_premia, name='new_premia'),
-    path('zapusk/new_zapusk/', views.new_zapusk, name='new_zapusk'),
-    path('zapusk_list/', views.zapusk_list, name='zapusk_list'),
+    path('zapusk_edit/', views.zapusk_edit, name='zapusk_edit'),
 ]

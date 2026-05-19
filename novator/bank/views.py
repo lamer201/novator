@@ -2,11 +2,12 @@ from django.shortcuts import get_list_or_404, get_object_or_404, render, redirec
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
 from .forms import PremiaForm, ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormKSGRS, ZakazFormCredit
 from main.models import ItemProperty
-from .models import Balance, Buildings, Buy, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment, Zapusk
+from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
 from mtr.models import Sklad, Stock, Shipment
 from .func import get_sum, check_balance, make_zakaz
 from constance import config
@@ -285,13 +286,15 @@ def team_detail(request, team_id):
     obuchenie = type('Obuchenie', (), {})()
     transport = zakazy.filter(zakazitem__material__category__pk=3).count()
     truba = zakazy.filter(zakazitem__material__category__pk=1).count()*20
-    obuchenie.lin = zakazy.filter(zakazitem__material__pk=12)
-    obuchenie.grs = zakazy.filter(zakazitem__material__pk=13)
-    obuchenie.ks = zakazy.filter(zakazitem__material__pk=14)
-    zakazy_lin = zakazy.filter(zakazitem__material__category__pk=1).count()
-    zakazy_grs = zakazy.filter(zakazitem__material__pk=10).count()
-    zakazy_ks = zakazy.filter(zakazitem__material__pk=11).count()
-    zakazy_shtraf = zakazy.filter(zakazitem__material__category__pk=4).count()
+    obuchenie.lin = zakazy.filter(zakazitem__material__slug='master_les')
+    obuchenie.grs = zakazy.filter(zakazitem__material__slug='master_grs')
+    obuchenie.ks = zakazy.filter(zakazitem__material__slug='master_ks')
+    zakazy_lin = zakazy.filter(zakazitem__material__category__slug='trubi').count()
+    zakazy_grs = zakazy.filter(zakazitem__material__slug='grs').count()
+    zakazy_ks = zakazy.filter(zakazitem__material__slug='ks').count()
+    zakazy_shtraf = zakazy.filter(zakazitem__material__category__slug='shtrafs').count()
+    objects = ZakazItem.objects.filter(zakaz__team=team, material__slug__in=['grs', 'ks'], zakaz__status__name='Выдан снабженцем')
+
 
     context = {
         'team': team,
@@ -304,6 +307,7 @@ def team_detail(request, team_id):
         'zakazy_grs': zakazy_grs,
         'zakazy_ks': zakazy_ks,
         'zakazy_shtraf': zakazy_shtraf,
+        'objects': objects,
     }
     return render(request, 'bank/team_detail.html', context)
 
@@ -502,39 +506,18 @@ def new_premia(request):
     premii = Premia.objects.all()
     return render(request, 'bank/new_premia.html', {'form': form, 'teams': teams, 'premii': premii})
 
-
-def zapusk_list(request):
-    zapusks = Zapusk.objects.all()
-    return render(request, 'bank/zapusk_list.html', {'zapusks': zapusks})
-
-def zapusk_detail(request, zapusk_id):
-    zapusk = get_object_or_404(Zapusk, pk=zapusk_id)
-    return render(request, 'bank/zapusk_detail.html', {'zapusk': zapusk})
-
-def new_zapusk(request):
+@login_required
+@require_POST
+def zapusk_edit(request):
     if request.method == 'POST':
-        team = Team.objects.get(pk=request.POST.get('team'))
-        object_id = request.POST.get('object')
-        koeff_val = request.POST.get('koeff', 1.0)
-        year = config.YEAR
-        material = Material.objects.get(pk=object_id)
-        profit = request.POST.get('profit', 0.0)
+        zakaz_item_id = request.POST.get('zakaz_item')
+        profit_koeff = request.POST.get('koeff_val')
+        zakaz_item = get_object_or_404(ZakazItem, pk=zakaz_item_id)
         try:
-            zapusk = Zapusk.objects.create(
-                team=team,
-                year=year,
-                object=material,
-                koeff=koeff_val,
-                profit=profit
-                )
-            zapusk.save()
-            messages.success(request, f'Запуск объекта "{zapusk.object.name}" для команды "{team.name}" запланирован на {year} год.')
-            return redirect('bank:zapusk_list')
+            if profit_koeff is not None:
+                zakaz_item.profit_koeff = float(profit_koeff)
+            zakaz_item.save()
+            messages.success(request, 'Позиция успешно обновлена.')
         except (ValueError, TypeError):
-            messages.error(request, 'Неверные данные для запуска. Пожалуйста, проверьте введённые данные и попробуйте снова.')
-            return redirect('bank:new_zapusk')
-
-    teams = Team.objects.filter(status=True)
-    buildings = Material.objects.filter(category__pk=7)  # Assuming category 7 corresponds to buildings
-    cost = ItemProperty.objects.filter(material__category__pk=7, property_name='cost')
-    return render(request, 'bank/new_zapusk.html', {'teams': teams, 'buildings': buildings, 'year': config.YEAR, 'cost': cost})
+            messages.error(request, 'Неверные значения коэффициента прибыли. Пожалуйста, введите корректные данные.')
+    return redirect('bank:team_detail', team_id=zakaz_item.zakaz.team.pk)

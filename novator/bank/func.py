@@ -1,7 +1,8 @@
 from django.shortcuts import get_list_or_404, get_object_or_404, render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from .models import Balance, Buy, Team, Zakaz, Material, ZakazItem, Status
+from .models import Balance, Team, Zakaz, Material, ZakazItem, Status
+from main.models import ItemProperty
 from constance import config
 
 def get_sum(form):
@@ -47,12 +48,17 @@ def make_zakaz(form):
             material = get_list_or_404(Material, slug=field)[0]
             koeff = float(form.cleaned_data['koeff'])
             price = material.price * koeff
+            if material.category.slug == 'buildings':
+                profit = ItemProperty.objects.get(material=material, property_name='cost').property_value
+            else:
+                profit = 0
             zakazItem = ZakazItem.objects.create(
                 zakaz=zakaz,
                 material=material,
                 price=price,
                 quantity=quantity,
-                koeff=koeff
+                koeff=koeff,
+                profit_val=profit
             )
             zakazItem.save()
         

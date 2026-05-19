@@ -4,50 +4,10 @@ from constance import config
 
 
 
-class Buy(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='buy_team')
-    material = models.ForeignKey(Material, on_delete=models.CASCADE)
-    year = models.IntegerField(verbose_name='Год покупки')
-    month = models.IntegerField(verbose_name='Месяц покупки', null=True)
-
-
-
-class Buildings(models.Model):
-    name = models.ForeignKey(Material, on_delete=models.CASCADE, verbose_name='Название объекта', limit_choices_to={'category__pk': 7})
-
-    def __str__(self):
-        return self.name.name
-
-
-
 class Balance(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     money = models.FloatField(max_length=10, verbose_name='Баланс')
 
-
-
-class Zapusk(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    year = models.IntegerField(verbose_name='Год запуска')
-    #month = models.IntegerField(verbose_name='Месяц запуска' , null=True)
-    object = models.ForeignKey(Material, on_delete=models.CASCADE)
-    koeff = models.FloatField(max_length=10, default=1.0, verbose_name='Коэффициент запуска')
-    profit_money = models.FloatField(max_length=10, default=0.0, verbose_name='Прибыль от запуска')
-
-    def __str__(self):
-        return f"Запуск {self.id} - {self.team.name} - {self.year} - {self.object.name}"
-    
-    def calculate_profit(self):
-        self.profit = self.profit * self.koeff
-        return self.profit
-    
-
-
-class Profit(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    year = models.IntegerField(verbose_name='Год прибыли')
-    amount = models.FloatField(max_length=10, verbose_name='Сумма прибыли')
-    object = models.ForeignKey(Zapusk, on_delete=models.CASCADE)
 
 
 class Zakaz(models.Model):
@@ -74,9 +34,22 @@ class ZakazItem(models.Model):
     quantity = models.IntegerField()
     koeff = models.FloatField(max_length=10, default=1.0)
     refund = models.BooleanField(default=False, verbose_name='Возврат')
+    profit_val = models.FloatField(max_length=10, default=0, verbose_name='Прибыль')
+    profit_koeff = models.FloatField(max_length=10, default=0, verbose_name='Коэффициент прибыли')
+
+    def __str__(self):
+        return f"{self.material.name}"
 
     def get_total(self):
         return self.quantity * self.price
+    
+    def get_profit(self):
+        return  self.profit_koeff * self.profit_val
+    
+    @property
+    def calculate_profit(self):
+        return self.profit_koeff * self.profit_val
+        
     
 
 class Credit(models.Model):
@@ -88,9 +61,6 @@ class Credit(models.Model):
     #remains_percent = models.FloatField(max_length=5, verbose_name='Остаток по процентам')
     status = models.CharField(max_length=20, verbose_name='Статус кредита', default='active')
 
-    """ @property
-    def total_price(self):
-        return self.remains + self.remains_percent """
 
     def __str__(self):
         return f"Кредит {self.id} - {self.team.name} - {self.amount}"

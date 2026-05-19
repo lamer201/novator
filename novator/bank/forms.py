@@ -37,8 +37,8 @@ class ZakazFormTrub(forms.Form):
 
 class ZakazFormKSGRS(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
-    KS = forms.IntegerField(label='КС', required=False)
-    GRS = forms.IntegerField(label='ГРС', required=False)
+    ks = forms.IntegerField(label='КС', required=False)
+    grs = forms.IntegerField(label='ГРС', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 

@@ -24,6 +24,7 @@ class Material(models.Model):
     slug = models.SlugField(max_length=100, blank=True)
     price = models.FloatField(max_length=10, verbose_name='Стоимость')
     category = models.ForeignKey(Category, on_delete=models.SET_DEFAULT ,verbose_name='Категория', default='пусто')
+    eco_score = models.FloatField(max_length=10, verbose_name='Экологический балл', default=0)
 
     def __str__(self):
         return self.name

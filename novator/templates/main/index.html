@@ -1,9 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Главная{% endblock %}
 
-
-{% for team in teams %}
-  <ul>
-    <li>
-        <a href="{% url 'main:team' team.pk %}">{{ team.name }}</a>
-    </li>
-    </ul>
-{% endfor %}
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">Добро пожаловать в систему управления ресурсами!</h1>
+    <p class="lead">Выберите раздел для управления заказами, техническим обеспечением и другими ресурсами.</p>
+    <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
+        <a href="{% url 'bank:zakaz_list' %}" style="display: block; text-decoration: none; color: inherit;">
+            <button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+                Заказы
+            </button>
+        </a>
+        <a href="{% url 'mtr:index' %}" style="display: block; text-decoration: none; color: inherit;">
+            <button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+                Материально-техническое обеспечение
+            </button>
+        </a>
+    </div>
+    <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
+        <a href="{% url 'bank:bank_list' %}" style="display: block; text-decoration: none; color: inherit;">
+            <button class="btn btn-outline-primary d-inline-flex align-items-center" type="button">
+                Банк
+            </button>
+        </a>
+        <a href="{% url 'mtr:sklad' %}" style="display: block; text-decoration: none; color: inherit;">
+            <button class="btn btn-outline-primary d-inline-flex align-items-center" type="button">
+                Склад
+            </button>
+        </a>
+    </div>
+</div>
+{% endblock %}

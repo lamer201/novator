@@ -1,5 +1,7 @@
 from django.db import models
 from main.models import Team, Material
+from bank.models import Zakaz, ZakazItem
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
@@ -19,7 +21,6 @@ class Sklad(models.Model):
 
     def __str__(self):
         return self.name
-
 
 
 """ class Material(models.Model):

@@ -10,4 +10,6 @@ urlpatterns = [
     path('sklad/', views.sklad, name='sklad'),
     path('shipment/<int:pk>/', views.shipment, name='shipment'),
     #path('sklad_teams/<int:pk>/', views.sklad_teams, name='sklad_teams'),
+    path('sklad_teams/', views.sklad_teams, name='sklad_teams'),
+    path('sklad_team_detail/<int:pk>/', views.sklad_team_detail, name='sklad_team_detail'),
 ]

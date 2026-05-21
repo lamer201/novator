@@ -24,6 +24,7 @@ class Material(models.Model):
     slug = models.SlugField(max_length=100, blank=True)
     price = models.FloatField(max_length=10, verbose_name='Стоимость')
     category = models.ForeignKey(Category, on_delete=models.SET_DEFAULT ,verbose_name='Категория', default='пусто')
+    eco_score = models.FloatField(max_length=10, verbose_name='Экологический балл', default=0)
 
     def __str__(self):
         return self.name
@@ -61,3 +62,18 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.role}"
+
+
+class EcoScore(models.Model):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    score = models.FloatField(max_length=10, verbose_name='Всего баллов')
+
+    def __str__(self):
+        return f"{self.team.name} - Экологический балл: {self.score}"
+
+
+class EcoScoreOperation(models.Model):
+    eco_score = models.ForeignKey(EcoScore, on_delete=models.CASCADE, related_name='operations')
+    operation = models.FloatField(max_length=10, verbose_name='Экологический балл')
+    year = models.IntegerField(verbose_name='Год операции')
+    item = models.ForeignKey('bank.ZakazItem', on_delete=models.CASCADE, verbose_name='Позиция заказа', related_name='eco_score_operations', blank=True, null=True)

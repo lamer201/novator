@@ -74,7 +74,17 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
+} 
+""" DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'novatory',     # Название базы данных
+        'USER': 'postgres', # Имя пользователя БД
+        'PASSWORD': 'postgres',            # Пароль от БД
+        'HOST': 'localhost',                 # Адрес сервера БД
+        'PORT': '5432',                      # Порт БД (стандартный для PostgreSQL)
+    }
+}  """
 
 
 # Password validation

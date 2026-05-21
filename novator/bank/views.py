@@ -293,7 +293,7 @@ def team_detail(request, team_id):
     zakazy_grs = zakazy.filter(zakazitem__material__slug='grs').count()
     zakazy_ks = zakazy.filter(zakazitem__material__slug='ks').count()
     zakazy_shtraf = zakazy.filter(zakazitem__material__category__slug='shtrafs').count()
-    objects = ZakazItem.objects.filter(zakaz__team=team, material__slug__in=['grs', 'ks'], zakaz__status__name='Выдан снабженцем')
+    objects = ZakazItem.objects.filter(zakaz__team=team, material__slug__in=['grs'], zakaz__status__name='Выдан снабженцем')
 
 
     context = {
@@ -512,10 +512,14 @@ def zapusk_edit(request):
     if request.method == 'POST':
         zakaz_item_id = request.POST.get('zakaz_item')
         profit_koeff = request.POST.get('koeff_val')
+        profit_val = request.POST.get('tower')
         zakaz_item = get_object_or_404(ZakazItem, pk=zakaz_item_id)
         try:
             if profit_koeff is not None:
                 zakaz_item.profit_koeff = float(profit_koeff)
+            if profit_val is not None:
+                zakaz_item.profit_val = float(profit_val)
+
             zakaz_item.save()
             messages.success(request, 'Позиция успешно обновлена.')
         except (ValueError, TypeError):

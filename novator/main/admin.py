@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, ItemProperty, Material, Team, Status, Koeff
+from .models import Category, ItemProperty, Material, Team, Status, Koeff, UserProfile
 
 class TeamAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'status',)
@@ -32,9 +32,17 @@ class KoeffAdmin(admin.ModelAdmin):
     search_fields = ('material__name',)
     empty_value_display = '-пусто-'
 
+
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'user', 'role', 'sklad')
+    search_fields = ('user__username', 'role')
+    empty_value_display = '-пусто-'
+
+
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Material, MaterialAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Status, StatusAdmin)
 admin.site.register(Koeff, KoeffAdmin)
 admin.site.register(ItemProperty, ItemPropertyAdmin)
+admin.site.register(UserProfile, UserProfileAdmin)

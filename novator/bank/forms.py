@@ -3,6 +3,7 @@ from django import forms
 
 def get_choices():
     choices = []
+    
     for instance in Team.objects.filter(status=True):
         choices.append((instance.pk, instance.name))
     return choices
@@ -32,12 +33,22 @@ class ZakazFormTrub(forms.Form):
     TRDU1000 = forms.IntegerField(label='Тройник Ду 1000', required=False)
     TRP1000_500 = forms.IntegerField(label='Тройник переходной 1000/500', required=False)
     PDU1000_500 = forms.IntegerField(label='Переходник 1000/500', required=False)
+    TDU500PP = forms.IntegerField(label='Подводный переход ДУ 500', required=False)
+    TDU1000PP = forms.IntegerField(label='Подводный переход ДУ 1000', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 
 class ZakazFormKSGRS(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     ks = forms.IntegerField(label='КС', required=False)
+    grs = forms.IntegerField(label='ГРС', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+
+
+class ZakazFormKS(forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+    ks = forms.IntegerField(label='КС', required=False)
+    eco_ks = forms.IntegerField(label='ЭКО-КС', required=False)
     grs = forms.IntegerField(label='ГРС', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 

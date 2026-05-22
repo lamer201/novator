@@ -8,8 +8,9 @@ class TeamAdmin(admin.ModelAdmin):
 
 
 class MaterialAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'name', 'price', 'category',)
+    list_display = ('pk', 'name', 'price', 'category', 'slug', 'eco_score')
     search_fields = ('name',)
+    list_filter = ["category",]
     empty_value_display = '-пусто-'
 
 class CategoryAdmin(admin.ModelAdmin):

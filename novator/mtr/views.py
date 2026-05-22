@@ -14,6 +14,7 @@ user = get_user_model()
 @login_required
 def index(request):
     zakazy = Zakaz.objects.filter(status__pk=2).filter(payment=True).filter(issued=False)
+    zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     sklad = Sklad.objects.filter(is_active=True, name = request.user.userprofile.sklad)
     stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'buildings'])
     sklad_teams = Sklad.objects.filter(team__isnull=False)

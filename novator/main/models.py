@@ -1,6 +1,8 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 # Create your models here.
+user = get_user_model()
 
 class Status(models.Model):
     name = models.CharField(max_length=20, verbose_name='Статус')
@@ -22,6 +24,7 @@ class Material(models.Model):
     slug = models.SlugField(max_length=100, blank=True)
     price = models.FloatField(max_length=10, verbose_name='Стоимость')
     category = models.ForeignKey(Category, on_delete=models.SET_DEFAULT ,verbose_name='Категория', default='пусто')
+    eco_score = models.FloatField(max_length=10, verbose_name='Экологический балл', default=0)
 
     def __str__(self):
         return self.name
@@ -50,3 +53,12 @@ class Koeff(models.Model):
 
     def __str__(self):
         return f"{self.material.name} - Коэффициент: {self.koeff_value}"
+    
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(user, on_delete=models.CASCADE)
+    role = models.CharField(max_length=50, verbose_name='Роль пользователя')
+    sklad = models.OneToOneField('mtr.Sklad', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Склад')
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"

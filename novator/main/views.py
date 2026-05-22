@@ -25,3 +25,4 @@ def team(request, pk):
         'zakaz': zakaz,
     }
     return render(request, 'main/team.html', context)
+

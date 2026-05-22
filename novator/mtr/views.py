@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -8,16 +9,21 @@ from bank.models import Zakaz, ZakazItem
 from django.core.exceptions import ValidationError
 
 
+user = get_user_model()
+
 @login_required
 def index(request):
     zakazy = Zakaz.objects.filter(status__pk=2).filter(payment=True).filter(issued=False)
-    sklad = Sklad.objects.filter(team__isnull=False, is_active=True)
+    sklad = Sklad.objects.filter(is_active=True, name = request.user.userprofile.sklad)
+    stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'buildings'])
+    sklad_teams = Sklad.objects.filter(team__isnull=False)
     materials = []
     for items in sklad:
         materials.extend(Stock.objects.filter(warehouse=items))
     context = {
         'zakazy': zakazy,
-        'sklad': sklad,
+        'sklad': stock,
+        'sklad_teams': sklad_teams,
         'materials': materials
     }
     return render(request, 'mtr/index.html', context)
@@ -63,6 +69,15 @@ def sklad_teams(request) :
     }
     return render(request, 'mtr/sklad_teams.html', context)
 
+
+def sklad_team_detail(request, pk):
+    sklad = Sklad.objects.get(pk=pk)
+    materials = Stock.objects.filter(warehouse=sklad)
+    context = {
+        'sklad': sklad,
+        'materials': materials
+    }
+    return render(request, 'mtr/sklad_team_detail.html', context)
 
 def shipment(request, pk):
     zakaz = Zakaz.objects.get(pk=pk)

@@ -48,17 +48,13 @@ def make_zakaz(form):
             material = get_list_or_404(Material, slug=field)[0]
             koeff = float(form.cleaned_data['koeff'])
             price = material.price * koeff
-            if material.category.slug == 'buildings':
-                profit = ItemProperty.objects.get(material=material, property_name='cost').property_value
-            else:
-                profit = 0
             zakazItem = ZakazItem.objects.create(
                 zakaz=zakaz,
                 material=material,
                 price=price,
                 quantity=quantity,
                 koeff=koeff,
-                profit_val=profit
+                consumer=None,
             )
             zakazItem.save()
         

@@ -35,10 +35,20 @@ class ZakazFormTrub(forms.Form):
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 
-class ZakazFormKSGRS(forms.Form):
+class ZakazFormBuildings(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     ks = forms.IntegerField(label='КС', required=False)
+    eco_ks = forms.IntegerField(label='Эко-КС', required=False)
+    ee_oborud = forms.IntegerField(label='Энерго-эффектвное оборудование', required=False)
+    tpbo = forms.IntegerField(label='полигон ТПБО', required=False)
+    uu_utils = forms.IntegerField(label='Утилизационная установка', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+
+
+class ZakazFormGRS(forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     grs = forms.IntegerField(label='ГРС', required=False)
+    eco_grs = forms.IntegerField(label='Эко-ГРС', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 

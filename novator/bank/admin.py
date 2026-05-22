@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Balance, Zakaz, ZakazItem, Credit, CreditPayment, Premia
+from .models import Balance, Zakaz, ZakazItem, Credit, CreditPayment, Premia, Consumers
 
 
 STATUS_CHOICES = (
@@ -38,6 +38,10 @@ class PremiaAdmin(admin.ModelAdmin):
     search_fields = ('team', )
     empty_value_display = '-пусто-'
 
+class ConsumersAdmin(admin.ModelAdmin):
+    list_display = ('name', 'profit_val')
+    search_fields = ('name', )
+    empty_value_display = '-пусто-'
 
 
 admin.site.register(Balance, BalanceAdmin)
@@ -46,3 +50,4 @@ admin.site.register(ZakazItem, ZakazItemAdmin)
 admin.site.register(Credit, CreditAdmin)
 admin.site.register(CreditPayment, CreditPaymentAdmin)
 admin.site.register(Premia, PremiaAdmin)
+admin.site.register(Consumers, ConsumersAdmin)

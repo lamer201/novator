@@ -5,9 +5,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
-from .forms import PremiaForm, ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormKSGRS, ZakazFormCredit
+from .forms import PremiaForm, ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormCredit, ZakazFormGRS, ZakazFormBuildings
 from main.models import ItemProperty
-from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
+from .models import Balance, Consumers, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
 from mtr.models import Sklad, Stock, Shipment
 from .func import get_sum, check_balance, make_zakaz
 from constance import config
@@ -30,10 +30,12 @@ def create_zakaz(request):
         type_form = ZakazFormObuchenie
     elif request.GET.get('category') == 'shtraf':
         type_form = ZakazFormShtraf
-    elif request.GET.get('category') == 'ksgrs':
-        type_form = ZakazFormKSGRS
+    elif request.GET.get('category') == 'buildings':
+        type_form = ZakazFormBuildings
     elif request.GET.get('category') == 'truba':
         type_form = ZakazFormTrub
+    elif request.GET.get('category') == 'grs':
+        type_form = ZakazFormGRS
     else:
         messages.error(request, 'Неверная категория заказа.')
         return redirect('bank:bank_list')
@@ -294,6 +296,7 @@ def team_detail(request, team_id):
     zakazy_ks = zakazy.filter(zakazitem__material__slug='ks').count()
     zakazy_shtraf = zakazy.filter(zakazitem__material__category__slug='shtrafs').count()
     objects = ZakazItem.objects.filter(zakaz__team=team, material__slug__in=['grs'], zakaz__status__name='Выдан снабженцем')
+    consumers = Consumers.objects.all()
 
 
     context = {
@@ -308,6 +311,7 @@ def team_detail(request, team_id):
         'zakazy_ks': zakazy_ks,
         'zakazy_shtraf': zakazy_shtraf,
         'objects': objects,
+        'consumers': consumers,
     }
     return render(request, 'bank/team_detail.html', context)
 
@@ -512,13 +516,18 @@ def zapusk_edit(request):
     if request.method == 'POST':
         zakaz_item_id = request.POST.get('zakaz_item')
         profit_koeff = request.POST.get('koeff_val')
-        profit_val = request.POST.get('tower')
+        consumer = request.POST.get('tower')
         zakaz_item = get_object_or_404(ZakazItem, pk=zakaz_item_id)
+        if consumer:
+            try:
+                consumer_obj = Consumers.objects.get(pk=int(consumer))
+                zakaz_item.consumer = consumer_obj
+            except (Consumers.DoesNotExist, ValueError, TypeError):
+                messages.error(request, 'Выбранный потребитель не найден. Пожалуйста, выберите корректного потребителя.')
+                return redirect('bank:team_detail', team_id=zakaz_item.zakaz.team.pk)
         try:
             if profit_koeff is not None:
                 zakaz_item.profit_koeff = float(profit_koeff)
-            if profit_val is not None:
-                zakaz_item.profit_val = float(profit_val)
 
             zakaz_item.save()
             messages.success(request, 'Позиция успешно обновлена.')

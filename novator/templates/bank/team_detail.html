@@ -103,20 +103,22 @@
                           <td>{{ obj.material.name }}</td>
                           <td>{{ obj.zakaz.year }}</td>
                           <td class="text-end">{{ obj.profit_koeff }}</td>
-                          <td class="text-end">{{ obj.profit_val }}</td>
+                          <td class="text-end">{{ obj.consumer.profit_val }}</td>
                           <td class="text-end">{{ obj.calculate_profit }}</td>
                           <td class="text-end">
                           <form method="post" action="{% url 'bank:zapusk_edit' %}">
                             {% csrf_token %}
                             <input type="hidden" name="zakaz_item" value="{{ obj.pk }}">
                             <select name="tower" class="form-select form-select-sm d-inline w-auto">
-                              <option value="{{ obj.tower }}">{{ obj.tower }}</option>
-                              <option value="600">Деревня</option>
-                              <option value="1200">Город</option>
-                              <option value="3000">Мегаполис</option>
-                              <option value="2000">СПГ</option>
+                              <option value="{{ obj.consumer.pk }}">{{ obj.consumer.name }}</option>
+                              {% for consumer in consumers %}
+                                {% if consumer.pk != obj.consumer.pk %}
+                                  <option value="{{ consumer.pk }}">{{ consumer.name }}</option>
+                                {% endif %}
+                              {% endfor %}
                             </select>
                             <select name="koeff_val" class="form-select form-select-sm d-inline w-auto">
+                              <option value="{{ obj.profit_koeff }}" selected>{{ obj.profit_koeff }}</option>
                               <option value="0.1">0.1</option>
                               <option value="0.2">0.2</option>
                               <option value="0.3">0.3</option>
@@ -126,7 +128,7 @@
                               <option value="0.7">0.7</option>
                               <option value="0.8">0.8</option>
                               <option value="0.9">0.9</option>
-                              <option value="1.0" selected>1.0</option>
+                              <option value="1.0">1.0</option>
                             </select>
                             </td>
                             <td class="text-end">

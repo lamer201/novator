@@ -9,6 +9,10 @@ class Balance(models.Model):
     money = models.FloatField(max_length=10, verbose_name='Баланс')
 
 
+class Consumers(models.Model):
+    name = models.CharField(max_length=100, verbose_name='Название потребителя')
+    profit_val = models.FloatField(max_length=10, default=0, verbose_name='Прибыль')
+
 
 class Zakaz(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
@@ -34,7 +38,7 @@ class ZakazItem(models.Model):
     quantity = models.IntegerField()
     koeff = models.FloatField(max_length=10, default=1.0)
     refund = models.BooleanField(default=False, verbose_name='Возврат')
-    profit_val = models.FloatField(max_length=10, default=0, verbose_name='Прибыль')
+    consumer = models.ForeignKey(Consumers, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Потребитель')
     profit_koeff = models.FloatField(max_length=10, default=0, verbose_name='Коэффициент прибыли')
 
     def __str__(self):
@@ -43,12 +47,11 @@ class ZakazItem(models.Model):
     def get_total(self):
         return self.quantity * self.price
     
-    def get_profit(self):
-        return  self.profit_koeff * self.profit_val
-    
     @property
     def calculate_profit(self):
-        return self.profit_koeff * self.profit_val
+        if self.consumer is None:
+            return 0
+        return self.profit_koeff * self.consumer.profit_val
         
     
 
@@ -99,4 +102,5 @@ class Premia(models.Model):
 
     def __str__(self):
         return f"Премия {self.id} - {self.team.name} - {self.amount}"
+
 

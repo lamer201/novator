@@ -17,7 +17,7 @@ class Zakaz(models.Model):
     payment = models.BooleanField(default=False, verbose_name='Оплачено')
     issued = models.BooleanField(default=False, verbose_name='Выдано')
     status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Статус заказа')
-    description = models.TextField(blank=True, verbose_name='Описание заказа')
+    description = models.TextField(blank=True, verbose_name='Номер договора')
 
     def __str__(self):
         return f"Заказ {self.id} - {self.team.name} - {self.year}"

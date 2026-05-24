@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
-from .forms import PremiaForm, ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormKSGRS, ZakazFormCredit
+from .forms import PremiaForm, ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormGRS, ZakazFormCredit
 from main.models import ItemProperty
 from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
 from mtr.models import Sklad, Stock, Shipment
@@ -31,7 +31,7 @@ def create_zakaz(request):
     elif request.GET.get('category') == 'shtraf':
         type_form = ZakazFormShtraf
     elif request.GET.get('category') == 'ksgrs':
-        type_form = ZakazFormKSGRS
+        type_form = ZakazFormGRS
     elif request.GET.get('category') == 'truba':
         type_form = ZakazFormTrub
     else:

@@ -14,6 +14,12 @@ def get_shtraf_choices():
         choices.append((instance.pk, instance.name))
     return choices
 
+def get_grs_choices():
+    choices=[]
+    for item in Material.objects.filter(slug__contains='grs'):
+        choices.append((item.pk,item.name))
+    return choices
+
 KOEFF_CHOICES = (
     (1.0, 'Без скидки'),
     (0.5, 'Скидка 50%'),
@@ -38,18 +44,18 @@ class ZakazFormTrub(forms.Form):
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 
-class ZakazFormKSGRS(forms.Form):
+class ZakazFormGRS(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
-    ks = forms.IntegerField(label='КС', required=False)
-    grs = forms.IntegerField(label='ГРС', required=False)
+    grs = forms.ChoiceField(label='ГРС', choices=get_grs_choices(), widget=forms.Select(attrs={'id': 'grs-select'}) )
+    description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 
-class ZakazFormKS(forms.Form):
+class ZakazBuildings(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     ks = forms.IntegerField(label='КС', required=False)
     eco_ks = forms.IntegerField(label='ЭКО-КС', required=False)
-    grs = forms.IntegerField(label='ГРС', required=False)
+
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 

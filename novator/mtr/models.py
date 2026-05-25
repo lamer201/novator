@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 
 class Sklad(models.Model):
     name = models.CharField(max_length=100, verbose_name='Название склада')
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='sklad_team', blank=True, null=True)
+    team = models.OneToOneField(Team, on_delete=models.CASCADE, related_name='sklad', blank=True, null=True)
     slug = models.SlugField(max_length=100, blank=True)
     category = models.CharField(max_length=100, verbose_name='Категория склада', blank=True)
     is_active = models.BooleanField(default=True, verbose_name='Активен')

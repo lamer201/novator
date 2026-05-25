@@ -20,6 +20,14 @@ def get_grs_choices():
         choices.append((item.pk,item.name))
     return choices
 
+get_ks_choices = lambda: [(item.pk, item.name) for item in Material.objects.filter(slug__contains='ks')]
+
+def get_buildings_choices():
+    choices=[]
+    for item in Material.objects.filter(category__slug='eco'):
+        choices.append((item.pk,item.name))
+    return choices
+
 KOEFF_CHOICES = (
     (1.0, 'Без скидки'),
     (0.5, 'Скидка 50%'),
@@ -46,16 +54,22 @@ class ZakazFormTrub(forms.Form):
 
 class ZakazFormGRS(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
-    grs = forms.ChoiceField(label='ГРС', choices=get_grs_choices(), widget=forms.Select(attrs={'id': 'grs-select'}) )
+    building = forms.ChoiceField(label='ГРС', choices=get_grs_choices(), widget=forms.Select(attrs={'id': 'grs-select'}) )
     description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 
-class ZakazBuildings(forms.Form):
+class ZakazFormKS(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
-    ks = forms.IntegerField(label='КС', required=False)
-    eco_ks = forms.IntegerField(label='ЭКО-КС', required=False)
+    building = forms.ChoiceField(label='КС', choices=get_ks_choices(), widget=forms.Select(attrs={'id': 'ks-select'}) )
+    description = forms.CharField(label='Номер догвора',max_length=10)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
+
+class ZakazFormBuildings(forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+    building = forms.ChoiceField(label='Здание', choices=get_buildings_choices(), widget=forms.Select(attrs={'id': 'building-select'}) )
+    description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 

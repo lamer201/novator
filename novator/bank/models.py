@@ -5,13 +5,13 @@ from constance import config
 
 
 class Balance(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    team = models.OneToOneField(Team, on_delete=models.CASCADE, related_name='balance')
     money = models.FloatField(max_length=10, verbose_name='Баланс')
 
 
 
 class Zakaz(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='zakaz')
     year = models.IntegerField(verbose_name='Год заказа')
     month = models.IntegerField(verbose_name='Месяц заказа', null=True)
     payment = models.BooleanField(default=False, verbose_name='Оплачено')
@@ -25,6 +25,11 @@ class Zakaz(models.Model):
     def get_total_sum(self):
         items = self.zakazitem_set.all()
         return sum(item.get_total() for item in items)
+
+    @property
+    def total_km(self):
+        items = self.zakazitem_set.all()
+        return sum(item.quantity * 20 for item in items)
 
 
 class ZakazItem(models.Model):

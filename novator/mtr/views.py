@@ -1,10 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .models import Extradition, Sklad, Shipment, Material, Stock
-from main.models import Status
+from main.models import Status, Team
 from bank.models import Zakaz, ZakazItem
 from django.core.exceptions import ValidationError
 
@@ -14,16 +14,18 @@ user = get_user_model()
 @login_required
 def index(request):
     zakazy = Zakaz.objects.filter(status__pk=2).filter(payment=True).filter(issued=False)
+    zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     sklad = Sklad.objects.filter(is_active=True, name = request.user.userprofile.sklad)
-    stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'buildings'])
-    sklad_teams = Sklad.objects.filter(team__isnull=False)
+    stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'ks', 'grs'])
+    teams = Team.objects.filter(status=True)
     materials = []
     for items in sklad:
         materials.extend(Stock.objects.filter(warehouse=items))
     context = {
         'zakazy': zakazy,
+        'zakazy_items': zakazy_items,
         'sklad': stock,
-        'sklad_teams': sklad_teams,
+        'teams': teams,
         'materials': materials
     }
     return render(request, 'mtr/index.html', context)
@@ -71,7 +73,8 @@ def sklad_teams(request) :
 
 
 def sklad_team_detail(request, pk):
-    sklad = Sklad.objects.get(pk=pk)
+    team = Team.objects.get(pk=pk)
+    sklad = Sklad.objects.get(pk=team.sklad.pk)
     materials = Stock.objects.filter(warehouse=sklad)
     context = {
         'sklad': sklad,
@@ -106,4 +109,5 @@ def shipment(request, pk):
     zakaz.issued = True
     zakaz.status = Status.objects.get(pk=3)
     zakaz.save()
-    return render(request, 'mtr/index.html')
+    messages.success(request, 'Перемещение успешно выполнено.')
+    return redirect('mtr:index')

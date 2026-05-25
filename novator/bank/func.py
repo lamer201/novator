@@ -15,6 +15,13 @@ def get_sum(form):
                     sum_material = sum_material + (price*quantity)
     return sum_material
 
+
+def test_balance(price, balance):
+    if price < balance:
+        return True
+    else:
+        return False
+
 def check_balance(request, team_id):
     try:
         item = Balance.objects.get(team=team_id)
@@ -32,7 +39,6 @@ def make_zakaz(form):
     if test_balance > balance.money:
             payment=False
     else:        payment=True
-            
     # Create new order
     zakaz = Zakaz.objects.create(
         team=team,
@@ -67,3 +73,42 @@ def make_zakaz(form):
     balance.save()
     return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)  # Replace with your success URL
 
+
+def make_zakaz_buildings(form):
+    # Get form data
+    team = Team.objects.get(pk=form.cleaned_data['team']) 
+    balance = Balance.objects.get(team=team)    
+    building = Material.objects.get(pk=form.cleaned_data['building']) 
+    price = building.price * float(form.cleaned_data['koeff'])
+    if building.category.slug == 'grs':
+        profit = ItemProperty.objects.get(material=building, property_name='cost').property_value
+    else:        profit = 0
+    if test_balance(price, balance.money):
+            payment=True
+    else:        payment=False
+            
+    # Create new order
+    zakaz = Zakaz.objects.create(
+        team=team,
+        year = config.YEAR,  # Use the value from Constance
+        month = 0,
+        payment=payment,
+        status=Status.objects.get(name='Создан'),
+        description=form.cleaned_data['description']
+    )
+    zakaz.save()
+
+    zakazItem = ZakazItem.objects.create(
+        zakaz=zakaz,
+        material=building,
+        price=price,
+        quantity=1,  # Assuming quantity is always 1 for GRS items
+        koeff=float(form.cleaned_data['koeff']) ,
+        profit_val=profit
+            )
+    zakazItem.save()
+        
+    new_balance = balance.money - price
+    balance.money = new_balance
+    balance.save()
+    return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)  # Replace with your success URL

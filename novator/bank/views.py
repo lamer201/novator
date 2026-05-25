@@ -5,11 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
-from .forms import PremiaForm, ZakazFormAuto, ZakazFormObuchenie, ZakazFormShtraf, ZakazFormTrub, ZakazFormGRS, ZakazFormCredit
+from .forms import *
 from main.models import ItemProperty
 from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
 from mtr.models import Sklad, Stock, Shipment
-from .func import get_sum, check_balance, make_zakaz
+from .func import get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance
 from constance import config
 
 User = get_user_model()
@@ -30,8 +30,6 @@ def create_zakaz(request):
         type_form = ZakazFormObuchenie
     elif request.GET.get('category') == 'shtraf':
         type_form = ZakazFormShtraf
-    elif request.GET.get('category') == 'ksgrs':
-        type_form = ZakazFormGRS
     elif request.GET.get('category') == 'truba':
         type_form = ZakazFormTrub
     else:
@@ -40,7 +38,31 @@ def create_zakaz(request):
     if request.method == 'POST':
         form = type_form(request.POST)
         if form.is_valid():
+            if (get_sum(form) > Balance.objects.get(team=form.cleaned_data['team']).money):
+                messages.error(request, 'Недостаточно средств на балансе для создания заказа.')
+                return redirect('bank:bank_list')
             return make_zakaz(form)
+    else:
+        form = type_form()
+    
+    return render(request, 'bank/zakaz.html', {'form': form})
+
+
+@login_required
+def create_zakaz_buildings(request):
+    if request.GET.get('category') == 'buildings':
+        type_form = ZakazFormBuildings
+    elif request.GET.get('category') == 'grs':
+        type_form = ZakazFormGRS
+    elif request.GET.get('category') == 'ks':
+        type_form = ZakazFormKS
+    else:
+        messages.error(request, 'Неверная категория заказа.')
+        return redirect('bank:bank_list')
+    if request.method == 'POST':
+        form = type_form(request.POST)
+        if form.is_valid():
+            return make_zakaz_buildings(form)
     else:
         form = type_form()
     
@@ -284,16 +306,16 @@ def team_detail(request, team_id):
     balance = Balance.objects.get(team=team)
     zakazy = Zakaz.objects.filter(team=team)
     obuchenie = type('Obuchenie', (), {})()
-    transport = zakazy.filter(zakazitem__material__category__pk=3).count()
-    truba = zakazy.filter(zakazitem__material__category__pk=1).count()*20
+    transport = zakazy.filter(zakazitem__material__category__slug='auto').count()
+    truba = zakazy.filter(zakazitem__material__category__slug='trubi').count()*20
     obuchenie.lin = zakazy.filter(zakazitem__material__slug='master_les')
     obuchenie.grs = zakazy.filter(zakazitem__material__slug='master_grs')
     obuchenie.ks = zakazy.filter(zakazitem__material__slug='master_ks')
     zakazy_lin = zakazy.filter(zakazitem__material__category__slug='trubi').count()
-    zakazy_grs = zakazy.filter(zakazitem__material__slug='grs').count()
-    zakazy_ks = zakazy.filter(zakazitem__material__slug='ks').count()
+    zakazy_grs = zakazy.filter(zakazitem__material__category__slug='grs').count()
+    zakazy_ks = zakazy.filter(zakazitem__material__category__slug='ks').count()
     zakazy_shtraf = zakazy.filter(zakazitem__material__category__slug='shtrafs').count()
-    objects = ZakazItem.objects.filter(zakaz__team=team, material__slug__in=['grs', 'ks'], zakaz__status__name='Выдан снабженцем')
+    objects = ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs', zakaz__status__name='Выдан снабженцем')
 
 
     context = {

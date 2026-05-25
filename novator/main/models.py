@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 # Create your models here.
 user = get_user_model()
 
-
 class Status(models.Model):
     name = models.CharField(max_length=20, verbose_name='Статус')
 
@@ -38,7 +37,12 @@ class Team(models.Model):
 
     def __str__(self):
        return str(self.name)
-
+    
+    @property
+    def total_km(self):
+        zakazy = self.zakaz.all()
+        items = [item for zakaz in zakazy for item in zakaz.zakazitem_set.all()]
+        return sum(item.quantity for item in items) * 20
 
 class ItemProperty(models.Model):
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
@@ -55,7 +59,7 @@ class Koeff(models.Model):
 
     def __str__(self):
         return f"{self.material.name} - Коэффициент: {self.koeff_value}"
-
+    
 
 class UserProfile(models.Model):
     user = models.OneToOneField(user, on_delete=models.CASCADE)
@@ -67,7 +71,7 @@ class UserProfile(models.Model):
 
 
 class EcoScore(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    team = models.OneToOneField(Team, on_delete=models.CASCADE, related_name='eco_scores')
     score = models.FloatField(max_length=10, verbose_name='Всего баллов')
 
     def __str__(self):
@@ -79,4 +83,3 @@ class EcoScoreOperation(models.Model):
     operation = models.FloatField(max_length=10, verbose_name='Экологический балл')
     year = models.IntegerField(verbose_name='Год операции')
     item = models.ForeignKey('bank.ZakazItem', on_delete=models.CASCADE, verbose_name='Позиция заказа', related_name='eco_score_operations', blank=True, null=True)
-    eco_event = models.CharField(max_length=100, verbose_name='Экологическое мероприятие', blank=True)

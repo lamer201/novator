@@ -1,7 +1,19 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Teams{% endblock %}
 
+
 {% block content %}
+{% if messages %}
+    <div class="container my-4">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 <div class="container my-4">
   <h2 class="mb-4">Банк</h2>
   <h2 class="mb-4">Новый заказ</h2>
@@ -9,10 +21,14 @@
 <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
 <a href="{% url 'bank:create_zakaz' %}?category=truba" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
 Трубы</button></a>
-<a href="{% url 'bank:create_zakaz' %}?category=ksgrs" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
-КС/ГРС</button></a>
+<a href="{% url 'bank:create_zakaz_buildings' %}?category=ks" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+КС</button></a>
+<a href="{% url 'bank:create_zakaz_buildings' %}?category=grs" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+ГРС</button></a>
 <a href="{% url 'bank:create_zakaz' %}?category=auto" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
 Транспорт</button></a>
+<a href="{% url 'bank:create_zakaz_buildings' %}?category=buildings" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+Экология</button></a>
 <a href="{% url 'bank:create_zakaz' %}?category=obuchenie" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
 Обучение</button></a>
 <a href="{% url 'bank:create_zakaz' %}?category=shtraf" style="display: block; text-decoration: none; color: inherit;"><button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">

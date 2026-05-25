@@ -89,6 +89,7 @@
                         <th>ID заказа</th>
                         <th>Материал</th>
                         <th>Год</th>
+                        <th class="text-end">Номер договора</th>
                         <th class="text-end">Коэффициент прибыли</th>
                         <th class="text-end">Базовая прибыль</th>
                         <th class="text-end">Итоговая прибыль</th>
@@ -101,6 +102,7 @@
                           <td>{{ obj.zakaz.id }}</td>
                           <td>{{ obj.material.name }}</td>
                           <td>{{ obj.zakaz.year }}</td>
+                          <td class="text-end">{{ obj.zakaz.description }}</td>
                           <td class="text-end">{{ obj.profit_koeff }}</td>
                           <td class="text-end">{{ obj.profit_val }}</td>
                           <td class="text-end">{{ obj.calculate_profit }}</td>

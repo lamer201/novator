@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'mtr',
     'bank',
     'cart',
+    'contactor',
     'widget_tweaks',
     'debug_toolbar',
     'constance',

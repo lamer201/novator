@@ -307,7 +307,7 @@ def team_detail(request, team_id):
     zakazy = Zakaz.objects.filter(team=team)
     obuchenie = type('Obuchenie', (), {})()
     transport = zakazy.filter(zakazitem__material__category__slug='auto').count()
-    truba = zakazy.filter(zakazitem__material__category__slug='trubi').count()*20
+    truba = zakazy.filter(zakazitem__material__category__slug='trubi').count() * 20
     obuchenie.lin = zakazy.filter(zakazitem__material__slug='master_les')
     obuchenie.grs = zakazy.filter(zakazitem__material__slug='master_grs')
     obuchenie.ks = zakazy.filter(zakazitem__material__slug='master_ks')

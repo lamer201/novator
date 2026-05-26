@@ -42,6 +42,7 @@
             <th>Материал</th>
             <th>Год</th>
             <th>Км. газпровода</th>
+            <th>Всего очков экологии</th>
             <th>Действия</th>
           </tr>
         </thead>
@@ -53,7 +54,8 @@
             <td>{% for item in zakazy_items %}
             {% if item.zakaz.id == zakaz.id %}{{ item.material.name }}- {{ item.quantity|floatformat:0 }} шт.<br>{% endif %}{% endfor %}</td> 
             <td>{{ zakaz.year }}</td>
-            <td>{{ zakaz.total_km }}</td>
+            <td>{{ zakaz.total_km }} км.</td>
+            <td>{{ zakaz.total_eco_score }}</td>
             <td>
             <div class="d-flex flex-row gap-2">
               <div class="btn-group " role="group">
@@ -75,6 +77,48 @@
   {% endif %}
     {% if not zakazy %}
     <p class="text-muted">Заказов на выдачу нет.</p>
+  {% endif %}
+
+  
+
+   {% if teams %}
+    <div class="team-row d-flex flex-row flex-wrap gap-3 overflow-auto py-2 px-1" style="scroll-behavior:smooth;">
+      {% for team in teams %}
+        <a href="{% url 'mtr:sklad_team_detail' team.pk %}" style="display: block; text-decoration: none; color: inherit;"><div class="card" style="min-width:280px; max-width:320px;">
+          <div class="card-body d-flex align-items-start">
+            <div class="me-3 d-flex align-items-center">
+              {% comment %} {% if team.logo %}
+                <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="rounded" style="width:72px; height:72px; object-fit:cover;">
+              {% else %}
+                <img src="{% static 'img/team.svg' %}" alt="team" class="rounded" style="width:72px; height:72px; object-fit:cover;">
+              {% endif %} {% endcomment %}
+            </div>
+            <div class="flex-grow-1">
+              <h5 class="card-title mb-1">{{ team.name }}</h5>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="small text-muted">
+                {% for item in teams_auto %}
+                   {% if item.team.pk == team.pk %}
+                   <p class="card-text mb-2">
+                  Автотранспорт: {{ item.auto_count|floatformat:0 }} </p>{% endif %}
+                {% endfor %}
+                {% for item in teams_items %}
+                  {% if item.team.pk == team.pk %}
+                  <p class="card-text mb-2">
+                  Км. газопровода: {{ item.items_count|floatformat:0 }} км.</p>{% endif %}
+                  {% endfor %}
+                  <p class="card-text mb-2">
+                   Эко-репутация: {{ team.eco_scores.score| floatformat:0 }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div></a>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <p class="text-muted">No teams found.</p>
   {% endif %}
 
   {% if sklad %}
@@ -100,40 +144,5 @@
       </table>
     </div>
   {% endif %}
-
-   {% if teams %}
-    <div class="team-row d-flex flex-row flex-wrap gap-3 overflow-auto py-2 px-1" style="scroll-behavior:smooth;">
-      {% for team in teams %}
-        <a href="{% url 'mtr:sklad_team_detail' team.pk %}" style="display: block; text-decoration: none; color: inherit;"><div class="card" style="min-width:280px; max-width:320px;">
-          <div class="card-body d-flex align-items-start">
-            <div class="me-3 d-flex align-items-center">
-              {% comment %} {% if team.logo %}
-                <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="rounded" style="width:72px; height:72px; object-fit:cover;">
-              {% else %}
-                <img src="{% static 'img/team.svg' %}" alt="team" class="rounded" style="width:72px; height:72px; object-fit:cover;">
-              {% endif %} {% endcomment %}
-            </div>
-            <div class="flex-grow-1">
-              <h5 class="card-title mb-1">{{ team.name }}</h5>
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="small text-muted">
-                  <p class="card-text mb-2">
-                  Баланс: {{ team.balance.money|floatformat:0 }} ₽ </p>
-                  <p class="card-text mb-2">
-                  Км. газопровода: {{ team.total_km| floatformat:0 }}</p>
-                  <p class="card-text mb-2">
-                   Эко-репутация: {{ team.eco_scores.score| floatformat:0 }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div></a>
-      {% endfor %}
-    </div>
-
-  {% else %}
-    <p class="text-muted">No teams found.</p>
-  {% endif %}
-
 
 {% endblock %}

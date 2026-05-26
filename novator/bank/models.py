@@ -28,8 +28,13 @@ class Zakaz(models.Model):
 
     @property
     def total_km(self):
+        items = self.zakazitem_set.filter(material__category__slug='trubi')
+        return sum(item.quantity for item in items)
+    
+    @property
+    def total_eco_score(self):
         items = self.zakazitem_set.all()
-        return sum(item.quantity * 20 for item in items)
+        return sum(item.quantity * item.material.eco_score for item in items)
 
 
 class ZakazItem(models.Model):
@@ -54,8 +59,7 @@ class ZakazItem(models.Model):
     @property
     def calculate_profit(self):
         return self.profit_koeff * self.profit_val
-        
-    
+
 
 class Credit(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
@@ -105,3 +109,16 @@ class Premia(models.Model):
     def __str__(self):
         return f"Премия {self.id} - {self.team.name} - {self.amount}"
 
+
+class TotalKm(models.Model):
+    team = models.OneToOneField(Team, on_delete=models.CASCADE, related_name='total_km_team')
+    total_km = models.FloatField(max_length=10, verbose_name='Общее количество км газопровода')
+
+    def __str__(self):
+        return f"Общее количество км газопровода - {self.team.name} - {self.total_km}"
+    
+    def calculate_total_km(self, team):
+        zakazy = team.zakaz.all()
+        items = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug='trubi')
+        self.total_km = sum(item.quantity * 20 for item in items)
+        return self.total_km

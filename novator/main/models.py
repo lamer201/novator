@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+
 # Create your models here.
 user = get_user_model()
 
@@ -38,11 +39,6 @@ class Team(models.Model):
     def __str__(self):
        return str(self.name)
     
-    @property
-    def total_km(self):
-        zakazy = self.zakaz.all()
-        items = [item for zakaz in zakazy for item in zakaz.zakazitem_set.all()]
-        return sum(item.quantity for item in items) * 20
 
 class ItemProperty(models.Model):
     material = models.ForeignKey(Material, on_delete=models.CASCADE)

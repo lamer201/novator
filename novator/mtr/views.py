@@ -6,7 +6,9 @@ from django.contrib import messages
 from .models import Extradition, Sklad, Shipment, Material, Stock
 from main.models import Status, Team
 from bank.models import Zakaz, ZakazItem
+from django.db import transaction
 from django.core.exceptions import ValidationError
+from django.db.models import Sum
 
 
 user = get_user_model()
@@ -18,6 +20,17 @@ def index(request):
     sklad = Sklad.objects.filter(is_active=True, name = request.user.userprofile.sklad)
     stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'ks', 'grs'])
     teams = Team.objects.filter(status=True)
+    teams_items = []
+    teams_auto = []
+
+    # calculate total quantity of items in each team's sklad(s)
+    for team in teams:
+        team_sklads = Sklad.objects.filter(team=team, is_active=True)
+        items_auto = ZakazItem.objects.filter(zakaz__team=team, material__category__slug__in=['auto']).aggregate(total=Sum('quantity'))['total'] or 0
+        teams_auto.append({'team': team, 'auto_count': items_auto})
+        total = Stock.objects.filter(warehouse__in=team_sklads, material__category__slug__in=['trubi']).aggregate(total=Sum('quantity'))['total'] or 0
+        teams_items.append({'team': team, 'items_count': total * 20})
+
     materials = []
     for items in sklad:
         materials.extend(Stock.objects.filter(warehouse=items))
@@ -26,7 +39,9 @@ def index(request):
         'zakazy_items': zakazy_items,
         'sklad': stock,
         'teams': teams,
-        'materials': materials
+        'materials': materials,
+        'teams_items': teams_items,
+        'teams_auto': teams_auto,
     }
     return render(request, 'mtr/index.html', context)
 
@@ -61,10 +76,10 @@ def extradition_detail(request, pk):
 
 @login_required
 def sklad_teams(request) :
-    sklad = Sklad.objects.filter(team__isnull=False, active=True)
+    sklad = Sklad.objects.filter(team__isnull=False, is_active=True)
     materials = []
     for items in sklad:
-        materials.extend(Stock.objects.filter(sklad=items))
+        materials.extend(Stock.objects.filter(warehouse=items))
     context = {
         'sklad': sklad,
         'materials': materials
@@ -82,6 +97,7 @@ def sklad_team_detail(request, pk):
     }
     return render(request, 'mtr/sklad_team_detail.html', context)
 
+@transaction.atomic 
 def shipment(request, pk):
     zakaz = Zakaz.objects.get(pk=pk)
     if zakaz.issued == True:
@@ -90,6 +106,17 @@ def shipment(request, pk):
     material = ZakazItem.objects.filter(zakaz=zakaz)
     sklad_from = Sklad.objects.get(slug='sklad-1')
     sklad_to = Sklad.objects.get(team=zakaz.team)
+    if material.filter(material__category__slug='trubi').exists():
+        zakazy = Zakaz.objects.filter(team=zakaz.team)
+        auto_team = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug='auto').aggregate(total=Sum('quantity'))['total'] or 0
+        team_total_km = ZakazItem.objects.filter(zakaz__team=zakaz.team, material__category__slug='trubi').aggregate(total=Sum('quantity'))['total'] or 0
+        if zakaz.total_eco_score > zakaz.team.eco_scores.score:
+            messages.error(request, 'Недостаточно очков экологии для перемещения.')
+            return redirect('mtr:index')
+        if (15 * (auto_team +1)) / ((zakaz.total_km + team_total_km)) < 1:
+            messages.error(request, 'Недостаточно автотранспорта.')
+            return redirect('mtr:index')
+
 
     for item in material:
         material_mtr = Material.objects.get(pk=item.material.pk)

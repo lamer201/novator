@@ -35,6 +35,10 @@ class Team(models.Model):
     name = models.CharField(max_length=100, verbose_name='Имя команды')
     slug = models.SlugField(max_length=100)
     status = models.BooleanField(default=False, verbose_name='Активно')
+    learn_les = models.BooleanField(default=False, verbose_name='Мастер ЛЭС')
+    learn_grs = models.BooleanField(default=False, verbose_name='Оператор ГРС')
+    learn_ks = models.BooleanField(default=False, verbose_name='Инженер ГKС')
+    auto = models.IntegerField(default=0, verbose_name='Автотранспорт')
 
     def __str__(self):
        return str(self.name)

@@ -1,3 +1,6 @@
+from decimal import Decimal
+from urllib import request
+
 from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -104,20 +107,18 @@ def shipment(request, pk):
         messages.error(request, 'Перемещение уже совершено измените статус заказа вручную.')
         return render(request, 'mtr/index.html')
     material = ZakazItem.objects.filter(zakaz=zakaz)
-    sklad_from = Sklad.objects.get(slug='sklad-1')
+    sklad_from = Sklad.objects.get(name=request.user.userprofile.sklad)
     sklad_to = Sklad.objects.get(team=zakaz.team)
     if material.filter(material__category__slug='trubi').exists():
         zakazy = Zakaz.objects.filter(team=zakaz.team)
         auto_team = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug='auto').aggregate(total=Sum('quantity'))['total'] or 0
-        team_total_km = ZakazItem.objects.filter(zakaz__team=zakaz.team, material__category__slug='trubi').aggregate(total=Sum('quantity'))['total'] or 0
+        team_total_km = Stock.objects.filter(warehouse__team=zakaz.team, material__category__slug='trubi').aggregate(total=Sum('quantity'))['total'] or 0
         if zakaz.total_eco_score > zakaz.team.eco_scores.score:
             messages.error(request, 'Недостаточно очков экологии для перемещения.')
             return redirect('mtr:index')
-        if (15 * (auto_team +1)) / ((zakaz.total_km + team_total_km)) < 1:
-            messages.error(request, 'Недостаточно автотранспорта.')
+        if (15 * (auto_team +1)) / ((zakaz.total_items + team_total_km)) < 1:
+            messages.error(request, f'Недостаточно автотранспорта. У команды {auto_team} ед. автотранспорта, {zakaz.total_items * 20} - всего км для перемещения, {team_total_km * 20} - всего км у команды.')
             return redirect('mtr:index')
-
-
     for item in material:
         material_mtr = Material.objects.get(pk=item.material.pk)
         shipment = Shipment(
@@ -132,7 +133,9 @@ def shipment(request, pk):
             print("Перемещение выполнено")
         except ValidationError as e:
             print("Ошибка:", e)
-
+    team = Team.objects.get(pk=zakaz.team.pk)
+    team.eco_scores.score -= zakaz.total_eco_score
+    team.eco_scores.save()
     zakaz.issued = True
     zakaz.status = Status.objects.get(pk=3)
     zakaz.save()

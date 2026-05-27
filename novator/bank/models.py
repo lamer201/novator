@@ -27,9 +27,14 @@ class Zakaz(models.Model):
         return sum(item.get_total() for item in items)
 
     @property
-    def total_km(self):
+    def total_items(self):
         items = self.zakazitem_set.filter(material__category__slug='trubi')
         return sum(item.quantity for item in items)
+    
+    @property
+    def total_km(self):
+        items = self.zakazitem_set.filter(material__category__slug='trubi')
+        return sum(item.quantity * 20 for item in items)
     
     @property
     def total_eco_score(self):

@@ -81,9 +81,9 @@ class ZakazFormAuto(forms.Form):
 
 class ZakazFormObuchenie(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
-    master_les = forms.IntegerField(label='Мастер ЛЭС', required=False)
-    master_grs = forms.IntegerField(label='Мастер ГРС', required=False)
-    master_ks = forms.IntegerField(label='Мастер КС', required=False)
+    learn_les = forms.BooleanField(label='Мастер ЛЭС', required=False)
+    learn_grs = forms.BooleanField(label='Оператор ГРС', required=False)
+    learn_ks = forms.BooleanField(label='Инженер ГКС', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
 
 

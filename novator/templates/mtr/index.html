@@ -54,8 +54,8 @@
             <td>{% for item in zakazy_items %}
             {% if item.zakaz.id == zakaz.id %}{{ item.material.name }}- {{ item.quantity|floatformat:0 }} шт.<br>{% endif %}{% endfor %}</td> 
             <td>{{ zakaz.year }}</td>
-            <td>{{ zakaz.total_km }} км.</td>
-            <td>{{ zakaz.total_eco_score }}</td>
+            <td>{{ zakaz.total_km}} км.</td>
+            <td>-{{ zakaz.total_eco_score }}</td>
             <td>
             <div class="d-flex flex-row gap-2">
               <div class="btn-group " role="group">

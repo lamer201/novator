@@ -1,5 +1,5 @@
 from django.db import models
-from main.models import Status, Team, Material
+from main.models import Status, Team, Material, Category
 from constance import config
 
 
@@ -18,6 +18,7 @@ class Zakaz(models.Model):
     issued = models.BooleanField(default=False, verbose_name='Выдано')
     status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Статус заказа')
     description = models.TextField(blank=True, verbose_name='Номер договора')
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Категория заказа')
 
     def __str__(self):
         return f"Заказ {self.id} - {self.team.name} - {self.year}"

@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     'bank',
     'cart',
     'contactor',
+    'learning',
+    'audit',
     'widget_tweaks',
     'debug_toolbar',
     'constance',
@@ -178,5 +180,9 @@ CONSTANCE_CONFIG = {
         '1',                         # Значение по умолчанию
         'Год',         # Описание (help text)
         'year_choice_field'          # Ссылка на наш кастомный тип поля
+    ),
+    'MONEY_PER_YEAR': (
+        3000.0,                         # Значение по умолчанию
+        'Сумма денег, выдаваемая командам в начале года',         # Описание (help text)
     ),
 }

@@ -114,3 +114,25 @@ class PremiaForm(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     amount = forms.FloatField(label='Сумма премии', required=True)
     #year = forms.IntegerField(label='Год премии', required=True)
+
+
+class KapremontForm(forms.Form):
+    TDU500 = forms.IntegerField(label='Труба Ду 500', required=False)
+    TDU1000 = forms.IntegerField(label='Труба Ду 1000', required=False)
+    UDU500 = forms.IntegerField(label='Угол Ду 500', required=False)
+    UDU1000 = forms.IntegerField(label='Угол Ду 1000', required=False)
+    TRDU500 = forms.IntegerField(label='Тройник Ду 500', required=False)
+    TRDU1000 = forms.IntegerField(label='Тройник Ду 1000', required=False)
+    TRP1000_500 = forms.IntegerField(label='Тройник переходной 1000/500', required=False)
+    PDU1000_500 = forms.IntegerField(label='Переходник 1000/500', required=False)
+    TDU500PP = forms.IntegerField(label='Подводный переход ДУ 500', required=False)
+    TDU1000PP = forms.IntegerField(label='Подводный переход ДУ 1000', required=False)
+    kap_rem_du500 = forms.IntegerField(label='Капремонт Ду 500', required=False)
+    kap_rem_du1000 = forms.IntegerField(label='Капремонт Ду 1000', required=False)
+    kap_rem_ugol_du500 = forms.IntegerField(label='Капремонт Угол Ду 500', required=False)
+    kap_rem_ugol_du1000 = forms.IntegerField(label='Капремонт Угол Ду 1000', required=False)
+    kap_rem_tr_du500 = forms.IntegerField(label='Капремонт Тройник Ду 500', required=False)
+    kap_rem_tr_du1000 = forms.IntegerField(label='Капремонт Тройник Ду 1000', required=False)
+    kap_rem_pr = forms.IntegerField(label='Капремонт Переходинк 1000/500', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    

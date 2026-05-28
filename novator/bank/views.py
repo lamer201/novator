@@ -9,7 +9,7 @@ from .forms import *
 from main.models import ItemProperty
 from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
 from mtr.models import Sklad, Stock, Shipment
-from .func import get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance
+from .func import get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance, make_zakaz_obuchenie
 from constance import config
 
 User = get_user_model()
@@ -68,6 +68,20 @@ def create_zakaz_buildings(request):
     
     return render(request, 'bank/zakaz.html', {'form': form})
 
+
+@login_required
+def create_zakaz_obuchenie(request):
+    if request.method == 'POST':
+        form = ZakazFormObuchenie(request.POST)
+        if form.is_valid():
+            if form.cleaned_data['learn_les'] == False and form.cleaned_data['learn_grs'] == False and form.cleaned_data['learn_ks'] == False:
+                messages.error(request, 'Выберите хотя бы один вид обучения.')
+                return redirect('bank:bank_list')
+            return make_zakaz_obuchenie(form)
+    else:
+        form = ZakazFormObuchenie()
+    
+    return render(request, 'bank/zakaz.html', {'form': form})
 
 @login_required
 def zakaz_edit(request, zakaz_id):
@@ -308,9 +322,9 @@ def team_detail(request, team_id):
     obuchenie = type('Obuchenie', (), {})()
     transport = zakazy.filter(zakazitem__material__category__slug='auto').count()
     truba = zakazy.filter(zakazitem__material__category__slug='trubi').count() * 20
-    obuchenie.lin = zakazy.filter(zakazitem__material__slug='master_les')
-    obuchenie.grs = zakazy.filter(zakazitem__material__slug='master_grs')
-    obuchenie.ks = zakazy.filter(zakazitem__material__slug='master_ks')
+    obuchenie.lin = team.learn_les
+    obuchenie.grs = team.learn_grs
+    obuchenie.ks =  team.learn_ks
     zakazy_lin = zakazy.filter(zakazitem__material__category__slug='trubi').count()
     zakazy_grs = zakazy.filter(zakazitem__material__category__slug='grs').count()
     zakazy_ks = zakazy.filter(zakazitem__material__category__slug='ks').count()
@@ -406,7 +420,7 @@ def zakaz_kapremont(request, team_id):
     balance = Balance.objects.get(team=team)
     items = ZakazItem.objects.filter(zakaz__status__name='Выдан снабженцем', zakaz__team=team)
     materials = Stock.objects.filter(warehouse__team=team, quantity__gt=0, material__category__pk=1)
-    zakaz_form = ZakazFormTrub()
+    zakaz_form = KapremontForm()
     return render(request, 'bank/zakaz_kapremont.html', {'team': team, 'items': items, 'materials': materials, 'balance': balance, 'form': zakaz_form})
 
 @login_required

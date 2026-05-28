@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block title %}Обучение{% endblock %}
+
+{% block content %}
+{% if messages %}
+    <div class="container my-4">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="container py-4">
+        <div class="row mb-3">
+            <div class="col-12">
+                <h1 class="display-6">Добро пожаловать в приложение для обучения</h1>
+                <p class="lead text-muted">Здесь вы можете просматривать и управлять заказами на обучение.</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Заказы на обучение</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Команда</th>
+                                        <th scope="col">Год</th>
+                                        <th scope="col">Статус</th>
+                                        <th scope="col">Описание</th>
+                                        <th scope="col">Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in zakazy %}
+                                    <tr>
+                                        <td>{{ item.team.name }}</td>
+                                        <td>{{ item.year }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ item.status.name }}</span>
+                                        </td>
+                                        <td>
+                                        {% for zakaz_item in zakazy_items %}
+                                            {% if zakaz_item.zakaz.id == item.id %}
+                                                <div class="text-truncate" style="max-width:40rem;">{{ zakaz_item.material.name }}</div>
+                                            {% endif %}
+                                        {% endfor %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'learning:success_learning' item.id %}" class="btn btn-sm btn-outline-primary">Завершить обучение</a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4">Нет заказов на обучение.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

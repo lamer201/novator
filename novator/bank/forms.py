@@ -1,9 +1,10 @@
 from .models import Zakaz, Team, ZakazItem, Material
 from django import forms
+from django.contrib.auth import get_user_model
+
 
 def get_choices():
     choices = []
-    
     for instance in Team.objects.filter(status=True):
         choices.append((instance.pk, instance.name))
     return choices
@@ -16,11 +17,11 @@ def get_shtraf_choices():
 
 def get_grs_choices():
     choices=[]
-    for item in Material.objects.filter(slug__contains='grs'):
+    for item in Material.objects.filter(category__slug='grs'):
         choices.append((item.pk,item.name))
     return choices
 
-get_ks_choices = lambda: [(item.pk, item.name) for item in Material.objects.filter(slug__contains='ks')]
+get_ks_choices = lambda: [(item.pk, item.name) for item in Material.objects.filter(category__slug='ks')]
 
 def get_buildings_choices():
     choices=[]

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Team Detail{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4">{{ team.name }}</h2>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Заказы</h5>
+      {% if zakazy %}
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Категория</th>
+              <th>Год</th>
+              <th>Км</th>
+              <th>Эко очки</th>
+              <th>Материалы</th>
+              <th>Компенсация</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for zakaz in zakazy %}
+            <tr>
+              <td><strong>{{ zakaz.pk }}</strong></td>
+              <td>{{ zakaz.category.name }}</td>
+              <td>{{ zakaz.year }}</td>
+              <td>{{ zakaz.total_km }}</td>
+              <td>{{ zakaz.total_eco_score }}</td>
+              <td>
+                {% for item in zakazy_items %}
+                  {% if item.zakaz.id == zakaz.id %}
+                    {{ item.material.name }} - {{ item.quantity|floatformat:0 }} шт.{% if not forloop.last %}<br>{% endif %}
+                  {% endif %}
+                {% empty %}
+                  -
+                {% endfor %}
+              </td>
+              <td>
+                {% if zakaz.eco_compensations %}
+                  + {{ zakaz.eco_compensations.eco_compensation }} Эко очков{% if zakaz.eco_compensations.description %}{% endif %}
+                {% else %}
+                  Компенсация не оформлена
+                  <a href="{% url 'contactor:create_eco_compensation' zakaz.id %}" class="btn btn-sm btn-outline-primary ms-2">Оформить</a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p>Заказы не найдены.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

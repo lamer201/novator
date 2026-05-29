@@ -9,7 +9,7 @@ from .forms import *
 from main.models import ItemProperty
 from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
 from mtr.models import Sklad, Stock, Shipment
-from .func import get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance, make_zakaz_obuchenie
+from .func import get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance, make_zakaz_obuchenie, check_obuchenie
 from constance import config
 
 User = get_user_model()
@@ -174,7 +174,6 @@ def zakaz_add_material(request, zakaz_id):
     if not material_val or not qty_val:
         messages.error(request, 'Материал и количество обязательны.')
         return redirect('bank:zakaz_edit' if request.POST.get('next') == 'edit' else 'bank:zakaz_detail', zakaz_id=zakaz.pk)
-
     try:
         quantity = int(qty_val)
         if quantity <= 0:
@@ -300,14 +299,14 @@ def zakaz_detail(request, zakaz_id):
 
 @login_required
 def bank_list(request):
-    teams = Team.objects.filter(status=True)
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
     
     list_teams = {}
     for team in teams:
         zakaz = Zakaz.objects.filter(team=team).count
         balance = Balance.objects.get(team=team)
         list_teams.update({team.pk: {'name': team.name, 'balance': balance.money, 'zakaz': zakaz}})
-    new_zakaz = Zakaz.objects.filter(status=1)
+    new_zakaz = Zakaz.objects.filter(status=1, team__in=teams)
     context = {
         'teams': list_teams,
         'new_zakazs': new_zakaz

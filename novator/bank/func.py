@@ -2,7 +2,7 @@ from django.shortcuts import get_list_or_404, get_object_or_404, render, redirec
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from .models import Balance, Team, Zakaz, Material, ZakazItem, Status
-from main.models import ItemProperty
+from main.models import Category, ItemProperty
 from mtr.models import Stock
 from main.models import ItemProperty
 from constance import config
@@ -31,6 +31,13 @@ def check_balance(request, team_id):
         return JsonResponse({'text': item.money})
     except Balance.DoesNotExist:
         return JsonResponse({'text': ''}, status=404)
+
+def check_obuchenie(request, team_id):
+    team = Team.objects.get(id=team_id)
+    learn_ks = team.learn_ks
+    learn_grs = team.learn_grs
+    learn_les = team.learn_les
+    return JsonResponse({'learn_ks': learn_ks, 'learn_grs': learn_grs, 'learn_les': learn_les})
 
 
 def make_zakaz(form):
@@ -153,7 +160,8 @@ def make_zakaz_obuchenie(form):
         month = 0,
         payment=payment,
         status=Status.objects.get(name='Создан'),
-        description='Обучение'
+        description='Обучение',
+        category = Category.objects.get(slug='learning')
     )
     zakaz.save()
 

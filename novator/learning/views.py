@@ -8,13 +8,12 @@ from django.views.decorators.http import require_POST
 
 # Create your views here.
 def index(request):
-    zakazy = Zakaz.objects.filter(category__slug='learning', status__pk=2, payment=True)
+    zakazy = Zakaz.objects.filter(category__slug='learning', status__pk=2, payment=True, team__name__in=request.user.userprofile.teams.values_list('name', flat=True))
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     return render(request, 'learning/index.html', {'zakazy': zakazy, 'zakazy_items': zakazy_items})
 
 
 @login_required
-@require_POST
 @transaction.atomic
 def success_learning(request, zakaz_id):
     zakaz = Zakaz.objects.get(id=zakaz_id)

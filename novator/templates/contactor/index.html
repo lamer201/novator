@@ -7,7 +7,18 @@
   <h2 class="mb-4">Подрядчик</h2>
   <div class="card">
     <div class="card-body">
-      <p>Здесь будет информация о подрядчике и его заказах.</p>
+      <h5 class="card-title">Список команд</h5>
+      <ul class="list-group list-group-flush">
+        {% for team in teams %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ team.name }}
+          <a href="{% url 'contactor:team_detail' team.id %}" class="btn btn-primary btn-sm">Подробнее</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% if not teams %}
+        <p class="text-muted">Команды не найдены.</p>
+      {% endif %}
     </div>
   </div>
 </div>

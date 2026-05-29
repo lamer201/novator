@@ -65,6 +65,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(user, on_delete=models.CASCADE)
     role = models.CharField(max_length=50, verbose_name='Роль пользователя')
     sklad = models.OneToOneField('mtr.Sklad', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Склад')
+    teams = models.ManyToManyField(Team, related_name='members', blank=True, verbose_name='Команды')
     
     def __str__(self):
         return f"{self.user.username} - {self.role}"
@@ -83,3 +84,15 @@ class EcoScoreOperation(models.Model):
     operation = models.FloatField(max_length=10, verbose_name='Экологический балл')
     year = models.IntegerField(verbose_name='Год операции')
     item = models.ForeignKey('bank.ZakazItem', on_delete=models.CASCADE, verbose_name='Позиция заказа', related_name='eco_score_operations', blank=True, null=True)
+
+
+class Town(models.Model):
+    name = models.CharField(max_length=100, verbose_name='Название объекта')
+    slug = models.SlugField(max_length=100, blank=True)
+    category = models.CharField(max_length=100, verbose_name='Категория объекта', blank=True)
+    eco_score = models.FloatField(max_length=10, verbose_name='Экологический балл', default=0)
+    profit = models.FloatField(max_length=10, verbose_name='Прибыль', default=0)
+    potrebiteli = models.IntegerField(default=0, verbose_name='Количество потребителей')
+
+    def __str__(self):
+        return self.name

@@ -18,11 +18,11 @@ user = get_user_model()
 
 @login_required
 def index(request):
-    zakazy = Zakaz.objects.filter(status__pk=2).filter(payment=True).filter(issued=False)
+    zakazy = Zakaz.objects.filter(status__pk=2,payment=True,issued=False,category__slug__in=['trubi', 'ks', 'grs'], team__name__in=request.user.userprofile.teams.values_list('name', flat=True)) 
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     sklad = Sklad.objects.filter(is_active=True, name = request.user.userprofile.sklad)
     stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'ks', 'grs'])
-    teams = Team.objects.filter(status=True)
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
     teams_items = []
     teams_auto = []
 

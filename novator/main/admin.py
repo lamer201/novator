@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, ItemProperty, Material, Team, Status, Koeff, UserProfile, EcoScore, EcoScoreOperation
+from .models import Category, ItemProperty, Material, Team, Status, Koeff, UserProfile, EcoScore, EcoScoreOperation, Town
 
 class TeamAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'status',)
@@ -49,6 +49,11 @@ class EcoScoreOperationAdmin(admin.ModelAdmin):
     list_display = ('pk', 'eco_score', 'operation', 'item', 'year')
     empty_value_display = '-пусто-'
 
+class TownAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'name', 'slug', 'category', 'eco_score', 'profit', 'potrebiteli')
+    search_fields = ('name',)
+    empty_value_display = '-пусто-'
+
 
 admin.site.register(Team, TeamAdmin)
 admin.site.register(Material, MaterialAdmin)
@@ -59,3 +64,4 @@ admin.site.register(ItemProperty, ItemPropertyAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(EcoScore, EcoScoreAdmin)
 admin.site.register(EcoScoreOperation, EcoScoreOperationAdmin)
+admin.site.register(Town, TownAdmin)

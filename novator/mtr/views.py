@@ -16,13 +16,26 @@ from django.db.models import Sum
 
 user = get_user_model()
 
+
+def check_obuchenie(zakaz):
+    team = zakaz.team
+    if zakaz.category.slug == 'trubi' and team.learn_les:
+        return True
+    elif zakaz.category.slug == 'grs' and team.learn_grs:
+        return True
+    elif zakaz.category.slug == 'ks' and team.learn_ks:
+        return True
+    else:
+        return False
+
 @login_required
 def index(request):
     zakazy = Zakaz.objects.filter(status__pk=2,payment=True,issued=False,category__slug__in=['trubi', 'ks', 'grs'], team__name__in=request.user.userprofile.teams.values_list('name', flat=True)) 
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     sklad = Sklad.objects.filter(is_active=True, name = request.user.userprofile.sklad)
-    stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'ks', 'grs'])
+    stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'ks'])
     teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
+    grs_items = Stock.objects.filter(warehouse__team__in=teams, material__category__slug='grs').count()
     teams_items = []
     teams_auto = []
 
@@ -45,6 +58,7 @@ def index(request):
         'materials': materials,
         'teams_items': teams_items,
         'teams_auto': teams_auto,
+        'grs_items': grs_items,
     }
     return render(request, 'mtr/index.html', context)
 
@@ -103,6 +117,9 @@ def sklad_team_detail(request, pk):
 @transaction.atomic 
 def shipment(request, pk):
     zakaz = Zakaz.objects.get(pk=pk)
+    if not check_obuchenie(zakaz):
+        messages.error(request, 'Команда не обучена для перемещения данного типа материалов.')
+        return redirect('mtr:index')
     if zakaz.issued == True:
         messages.error(request, 'Перемещение уже совершено измените статус заказа вручную.')
         return render(request, 'mtr/index.html')

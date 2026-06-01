@@ -69,6 +69,7 @@ def create_zakaz_buildings(request):
     return render(request, 'bank/zakaz.html', {'form': form})
 
 
+
 @login_required
 def create_zakaz_obuchenie(request):
     if request.method == 'POST':
@@ -319,7 +320,7 @@ def bank_list(request):
 def team_detail(request, team_id):
     team = get_list_or_404(Team, pk=team_id)[0]
     balance = Balance.objects.get(team=team)
-    zakazy = Zakaz.objects.filter(team=team)
+    zakazy = Zakaz.objects.filter(team=team).order_by('-id')
     obuchenie = type('Obuchenie', (), {})()
     transport = zakazy.filter(zakazitem__material__category__slug='auto').count()
     truba = zakazy.filter(zakazitem__material__category__slug='trubi').count() * 20

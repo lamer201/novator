@@ -138,6 +138,37 @@
         </div>
       </div>
     </div>
+    <div class="mt-4">
+      {% if zakazy %}
+        <h5>Заказы</h5>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>ID заказа</th>
+                <th>Статус</th>
+                <th>Год</th>
+                <th class="text-end">Категория</th>
+                <th class="text-end">Общая стоимость</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for zakaz in zakazy %}
+                <tr>
+                  <td>{{ zakaz.id }}</td>
+                  <td>{{ zakaz.status }}</td>
+                  <td>{{ zakaz.year }}</td>
+                  <td class="text-end">{{ zakaz.category }}</td>
+                  <td class="text-end">{{ zakaz.get_total_sum }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">Нет заказов</p>
+      {% endif %}
+    </div>
   </main>
 
   <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>

@@ -75,7 +75,7 @@ class ZakazFormBuildings(forms.Form):
     building = forms.ChoiceField(label='Здание', choices=get_buildings_choices(), widget=forms.Select(attrs={'id': 'building-select'}) )
     description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
-    category = forms.CharField(widget=forms.HiddenInput(), initial='buildings')
+    category = forms.CharField(widget=forms.HiddenInput(), initial='eco')
 
 
 class ZakazFormAuto(forms.Form):

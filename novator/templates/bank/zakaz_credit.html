@@ -16,14 +16,14 @@
     </div>
   {% endif %}
   <h2 class="mb-4">Заказ кредита</h2>
-    <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
-    </div>
 </div>
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="m-0">{{ team.name }}</h2>
   </div>
-    <div class="container my-4">
+    <div class="container my-4 ">
+        <div class="row">
+        <div class="col">
         <div class="d-flex justify-content-left align-items-center mb-4 gap-3">
         <label class="form-label me-2">Баланс</label>
         <input type ='text' id="myText" readonly class="form-control w-auto" value="{{ balance.money }} ₽">
@@ -31,8 +31,6 @@
         {% if form %}
         <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
-    
-        
             {% for field in form %}
             <div class="mb-3 mt-3">
                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
@@ -47,7 +45,45 @@
         {% else %}
         <p class="text-muted">Нет доступных форм для заказа кредита.</p>
         {% endif %}
+        </div>
+        <div class="col">
+          <h5>Процентная ставка (начисляется один раз)</h5>
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">№</th>
+                  <th scope="col">Баланс команды</th>
+                  <th scope="col">Процентная ставка</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">1</th>
+                  <td>≥ 3 млн. руб.</td>
+                  <td>20%</td>
+                </tr>
+                <tr>
+                  <th scope="row">2</th>
+                  <td>От 2 млн. до 3 млн.</td>
+                  <td>25%</td>
+                </tr>
+                <tr>
+                  <th scope="row">3</th>
+                  <td>От 1 млн. до 2 млн.</td>
+                  <td>30%</td>
+                </tr>
+                <tr>
+                  <th scope="row">4</th>
+                  <td>≤ 1 млн.</td>
+                  <td>35%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
     </div>
 </div>
 <script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
+
 {% endblock %}

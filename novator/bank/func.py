@@ -1,7 +1,7 @@
 from django.shortcuts import get_list_or_404, get_object_or_404, render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from .models import Balance, Team, Zakaz, Material, ZakazItem, Status
+from .models import Balance, Credit, Team, Zakaz, Material, ZakazItem, Status
 from main.models import Category, ItemProperty
 from mtr.models import Stock
 from main.models import ItemProperty
@@ -11,7 +11,7 @@ def get_sum(form):
     sum_material=0
     koeff = float(form.cleaned_data['koeff'])
     for field, quantity in form.cleaned_data.items():
-        if field != 'team' and field != 'koeff' and quantity:
+        if field != 'team' and field != 'koeff' and quantity and field != 'category':
                     material = get_list_or_404(Material, slug=field)[0]
                     price = material.price*koeff
                     sum_material = sum_material + (price*quantity)
@@ -40,6 +40,11 @@ def check_obuchenie(request, team_id):
     return JsonResponse({'learn_ks': learn_ks, 'learn_grs': learn_grs, 'learn_les': learn_les})
 
 
+def check_active_credit(request, team_id):
+    team = Team.objects.get(id=team_id)
+    active_credit = Credit.objects.filter(team=team, status='active').exists()
+    return active_credit
+
 def make_zakaz(form):
     # Get form data
     team = Team.objects.get(pk=form.cleaned_data['team']) 
@@ -55,12 +60,13 @@ def make_zakaz(form):
         year = config.YEAR,  # Use the value from Constance
         month = 0,
         payment=payment,
-        status=Status.objects.get(name='Создан')
+        status=Status.objects.get(name='Создан'),
+        category = Category.objects.get(slug=form.cleaned_data['category'])
     )
     zakaz.save()
             
     for field, quantity in form.cleaned_data.items():
-        if field != 'team' and field != 'koeff' and quantity:
+        if field != 'team' and field != 'koeff' and quantity and field != 'category':
             material = get_list_or_404(Material, slug=field)[0]
             koeff = float(form.cleaned_data['koeff'])
             price = material.price * koeff
@@ -104,7 +110,8 @@ def make_zakaz_buildings(form):
         month = 0,
         payment=payment,
         status=Status.objects.get(name='Создан'),
-        description=form.cleaned_data['description']
+        description=form.cleaned_data['description'],
+        category=Category.objects.get(slug=form.cleaned_data['category'])
     )
     zakaz.save()
 

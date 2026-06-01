@@ -1,5 +1,8 @@
 
 {% extends 'base.html' %}
+{% block title %}Список заказов{% endblock %}
+{% load static %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mt-4">
@@ -17,6 +20,7 @@
                     <tr>
                         <th>#</th>
                         <th>Команда</th>
+                        <th>Материалы</th>
                         <th>Год</th>
                         <th>Статус</th>
                         <th>Общая сумма</th>
@@ -28,9 +32,21 @@
                     <tr>
                         <td>{{ zakaz.id }}</td>
                         <td>{{ zakaz.team.name }}</td>
+                        <td>
+                        {% with zakaz_items|dictsort:"material.name" as items %}
+                            <ul>
+                            {% for item in items %}
+                            
+                                {% if item.zakaz.id == zakaz.id %}
+                                    <li>{{ item.material.name }} ({{ item.quantity }} шт.)</li>
+                                {% endif %}
+                            {% endfor %}
+                            </ul>
+                        {% endwith %}
+                        </td>
                         <td>{{ zakaz.year }}</td>
                         <td>{{ zakaz.status.name }}</td>
-                        <td>{{ zakaz.get_total_sum }} ₽</td>
+                        <td>{{ zakaz.get_total_sum|floatformat:0|intcomma }} ₽</td>
                         <td>{{ zakaz.payment }}</td>
                         <td>
                             <div class="btn-group" role="group">

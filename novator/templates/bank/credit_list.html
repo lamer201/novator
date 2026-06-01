@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Кредиты{% endblock %}
 
@@ -27,10 +28,10 @@
                 {% for credit in credits %}
                 <tr>
                     <td>{{ credit.team.name }}</td>
-                    <td>{{ credit.amount|floatformat:0 }} ₽</td>
+                    <td>{{ credit.amount|floatformat:0|intcomma }} ₽</td>
                     <td>{{ credit.year }}</td>
                     <td>{{ credit.percent|floatformat:2 }} %</td>
-                    <td>{{ credit.remains|floatformat:0 }} ₽</td>
+                    <td>{{ credit.remains|floatformat:0|intcomma }} ₽</td>
                     <td>{{ credit.status }}</td>
                     <td>
                         <a href="{% url 'bank:credit_detail' credit.id %}" class="btn btn-sm btn-primary">Подробнее</a>

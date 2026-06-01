@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
-
+{% block title %}Заказ #{{ zakaz.id }}{% endblock %}
+{% load static %}
+{% load humanize %}
 {% block content %}
 
 
@@ -15,8 +17,8 @@
                     <strong>Команда:</strong> {{ zakaz.team.name }}<br>
                     <strong>Год:</strong> {{ zakaz.year }}<br>
                     <strong>Месяц:</strong> {{ zakaz.month }}<br>
-                    <strong>Оплата:</strong> {{ zakaz.payment }}<br>
-                    <strong>Выдано:</strong> {{ zakaz.issued }}<br>
+                    <strong>Оплата:</strong> {{ zakaz.payment|floatformat:0|intcomma }} ₽<br>
+                    <strong>Выдано:</strong> {{ zakaz.issued|floatformat:0|intcomma }} ₽<br>
                     <strong>Статус:</strong> {{ zakaz.status.name }}
                 </div>
                 <div class="col-md-6 text-end">
@@ -49,7 +51,7 @@
                     <tfoot>
                         <tr>
                             <td colspan="3" class="text-end"><strong>Итого:</strong></td>
-                            <td><strong>{{ zakaz.get_total_sum }}</strong></td>
+                            <td><strong>{{ zakaz.get_total_sum|floatformat:0|intcomma }} ₽</strong></td>
                         </tr>
                     </tfoot>
                 </table>

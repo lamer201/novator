@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
-
 {% load static %}
-
+{% load humanize %}
 {% block title %}Запуски объектов{% endblock %}
 
 {% block content %}
@@ -39,7 +38,7 @@
                                     <td>{{ zapusk.year }}</td>
                                     <td>{{ zapusk.object }}</td>
                                     <td>{{ zapusk.koeff }}</td>
-                                    <td>{{ zapusk.profit_money }}</td>
+                                    <td>{{ zapusk.profit_money|floatformat:0|intcomma }} ₽</td>
                                 </tr>
                             {% empty %}
                                 <tr>

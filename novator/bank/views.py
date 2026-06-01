@@ -9,7 +9,7 @@ from .forms import *
 from main.models import ItemProperty
 from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
 from mtr.models import Sklad, Stock, Shipment
-from .func import get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance, make_zakaz_obuchenie, check_obuchenie
+from .func import check_active_credit, get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance, make_zakaz_obuchenie, check_obuchenie
 from constance import config
 
 User = get_user_model()
@@ -287,9 +287,11 @@ def zakaz_otmena(request, zakaz_id):
 def zakaz_list(request):
     if request.GET.get('team'):
         zakazy = Zakaz.objects.filter(team=request.GET.get('team')).order_by('-id')
+        zakaz_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     else:
         zakazy = Zakaz.objects.all().order_by('-id')
-    return render(request, 'bank/zakaz_list.html', {'zakazy': zakazy})
+        zakaz_items = ZakazItem.objects.all()
+    return render(request, 'bank/zakaz_list.html', {'zakazy': zakazy, 'zakaz_items': zakaz_items})
 
 @login_required
 def zakaz_detail(request, zakaz_id):
@@ -306,7 +308,7 @@ def bank_list(request):
         zakaz = Zakaz.objects.filter(team=team).count
         balance = Balance.objects.get(team=team)
         list_teams.update({team.pk: {'name': team.name, 'balance': balance.money, 'zakaz': zakaz}})
-    new_zakaz = Zakaz.objects.filter(status=1, team__in=teams)
+    new_zakaz = Zakaz.objects.filter(status=1, team__in=teams).order_by('-id')[:25]
     context = {
         'teams': list_teams,
         'new_zakazs': new_zakaz
@@ -430,22 +432,29 @@ def credit_list(request):
 @login_required
 def credit_detail(request, credit_id):
     credit = get_object_or_404(Credit, pk=credit_id)
+    balance = Balance.objects.get(team=credit.team)
     payments = CreditPayment.objects.filter(credit=credit)
-    return render(request, 'bank/credit_detail.html', {'credit': credit, 'payments': payments})
+    return render(request, 'bank/credit_detail.html', {'credit': credit, 'payments': payments, 'balance': balance})
 
 @login_required
 @transaction.atomic
 def zakaz_credit(request):
     if request.method == 'POST':
         team = Team.objects.get(pk=request.POST.get('team'))
-        amount_val = request.POST.get('amount')
-        percent = request.POST.get('percent', 35)  # Default interest rate if not provided
+        if check_active_credit(request, team.pk):
+            messages.error(request, 'У вашей команды уже есть активный кредит. Пожалуйста, погасите его перед оформлением нового кредита.')
+            return redirect('bank:new_credit')
         balance = Balance.objects.get(team=team)
+        if balance.money < 1000000:
+            amount_val = 1000000
+        else:
+            amount_val = request.POST.get('amount')
+        percent = request.POST.get('percent', 35)  # Default interest rate if not provided
         try:
             amount = float(amount_val)
             if amount <= 0:
                 raise ValueError()
-            if balance.money < amount:
+            if balance.money < amount and balance.money >= 1000000:
                 messages.error(request, 'Недостаточно средств на балансе для получения кредита. Требуется иметь на балансе сумму, равную запрашиваемому кредиту.')
                 return redirect('bank:new_credit')
         except (ValueError, TypeError):

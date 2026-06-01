@@ -51,6 +51,7 @@ class ZakazFormTrub(forms.Form):
     TDU500PP = forms.IntegerField(label='Подводный переход ДУ 500', required=False)
     TDU1000PP = forms.IntegerField(label='Подводный переход ДУ 1000', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='trubi')
 
 
 class ZakazFormGRS(forms.Form):
@@ -58,6 +59,7 @@ class ZakazFormGRS(forms.Form):
     building = forms.ChoiceField(label='ГРС', choices=get_grs_choices(), widget=forms.Select(attrs={'id': 'grs-select'}) )
     description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='grs')
 
 
 class ZakazFormKS(forms.Form):
@@ -65,6 +67,7 @@ class ZakazFormKS(forms.Form):
     building = forms.ChoiceField(label='КС', choices=get_ks_choices(), widget=forms.Select(attrs={'id': 'ks-select'}) )
     description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='ks')
 
 
 class ZakazFormBuildings(forms.Form):
@@ -72,13 +75,14 @@ class ZakazFormBuildings(forms.Form):
     building = forms.ChoiceField(label='Здание', choices=get_buildings_choices(), widget=forms.Select(attrs={'id': 'building-select'}) )
     description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='buildings')
 
 
 class ZakazFormAuto(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     auto = forms.IntegerField(label='Транспорт', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
-
+    category = forms.CharField(widget=forms.HiddenInput(), initial='auto')
 
 class ZakazFormObuchenie(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
@@ -86,6 +90,7 @@ class ZakazFormObuchenie(forms.Form):
     learn_grs = forms.BooleanField(label='Оператор ГРС', required=False)
     learn_ks = forms.BooleanField(label='Инженер ГКС', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='obuchenie')
 
 
 class ZakazFormShtraf(forms.Form):
@@ -102,6 +107,7 @@ class ZakazFormShtraf(forms.Form):
     shtraf_9 = forms.IntegerField(label='Штраф 9', required=False)
     shtraf_10 = forms.IntegerField(label='Штраф 10', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='shtraf')
 
 
 class ZakazFormCredit(forms.Form):
@@ -136,4 +142,5 @@ class KapremontForm(forms.Form):
     kap_rem_tr_du1000 = forms.IntegerField(label='Капремонт Тройник Ду 1000', required=False)
     kap_rem_pr = forms.IntegerField(label='Капремонт Переходинк 1000/500', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='kapremont')
     

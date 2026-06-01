@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-
 {% load static %}
+{% load humanize %}
 
 {% block title %}Заказ премии{% endblock %}
 
@@ -44,7 +44,7 @@
                     {% for premia in premii %}
                     <tr>
                         <td>{{ premia.team.name }}</td>
-                        <td>{{ premia.amount|floatformat:0 }} ₽</td>
+                        <td>{{ premia.amount|floatformat:0|intcomma }} ₽</td>
                         <td>{{ premia.year }}</td>
                     </tr>
                     {% empty %}

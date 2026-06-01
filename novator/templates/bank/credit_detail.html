@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% load static %}
 
 {% block title %}Детали кредита{% endblock %}
@@ -15,16 +16,20 @@
       {% endfor %}
     </div>
   {% endif %}
+    <div>
+    <label class="form-label me-2">Баланс</label>
+    <input type ='text' id="myText" readonly class="form-control w-auto mb-3" value="{{ balance.money|floatformat:0|intcomma }} ₽">
+    </div>
     <h2 class="mb-4">Детали кредита для команды {{ credit.team.name }}</h2>
-
     <div class="card mb-4">
         <div class="card-body">
-            <p><strong>Сумма кредита:</strong> {{ credit.amount|floatformat:0 }} ₽</p>
+            <p><strong>Сумма кредита:</strong> {{ credit.amount|floatformat:0|intcomma }} ₽</p>
             <p><strong>Год кредита:</strong> {{ credit.year }}</p>
             <p><strong>Процентная ставка:</strong> {{ credit.percent|floatformat:2 }} %</p>
-            <p><strong>Остаток по выплате кредита:</strong> {{ credit.remains|floatformat:0 }} ₽</p>
+            <p><strong>Остаток по выплате кредита:</strong> {{ credit.remains|floatformat:0|intcomma }} ₽</p>
         </div>
     </div>
+
     <div class="d-flex flex-row">
         <form method="post" action="{% url 'bank:make_payment' credit.id %}">
             {% csrf_token %}
@@ -50,7 +55,7 @@
                 {% for payment in payments %}
                 <tr>
                     <td>{{ payment.year }}</td>
-                    <td>{{ payment.amount|floatformat:0 }} ₽</td>
+                    <td>{{ payment.amount|floatformat:0|intcomma }} ₽</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -59,6 +64,9 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <div class="mb-4">
+        <a href="{% url 'bank:credit_list' %}" class="btn btn-secondary">Назад к списку кредитов</a>
     </div>
 </div>
 {% endblock %}

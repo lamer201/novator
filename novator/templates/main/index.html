@@ -16,6 +16,11 @@
                 Материально-техническое обеспечение
             </button>
         </a>
+        <a href="{% url 'main:control' %}" style="display: block; text-decoration: none; color: inherit;">
+            <button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+                Статистика и контроль
+            </button>
+        </a>
     </div>
     <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
         <a href="{% url 'bank:bank_list' %}" style="display: block; text-decoration: none; color: inherit;">
@@ -23,9 +28,19 @@
                 Банк
             </button>
         </a>
-        <a href="{% url 'mtr:sklad' %}" style="display: block; text-decoration: none; color: inherit;">
+        <a href="{% url 'contactor:index' %}" style="display: block; text-decoration: none; color: inherit;">
             <button class="btn btn-outline-primary d-inline-flex align-items-center" type="button">
-                Склад
+                Подрядная организация
+            </button>
+        </a>
+        <a href="{% url 'learning:index' %}" style="display: block; text-decoration: none; color: inherit;">
+            <button class="btn btn-outline-primary d-inline-flex align-items-center" type="button">
+                Обучение
+            </button>
+        </a>
+        <a href="{% url 'audit:index' %}" style="display: block; text-decoration: none; color: inherit;">
+            <button class="btn btn-outline-primary d-inline-flex align-items-center" type="button">
+                Аудит
             </button>
         </a>
     </div>

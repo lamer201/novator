@@ -285,6 +285,30 @@ def zakaz_otmena(request, zakaz_id):
 
 
 @login_required
+@transaction.atomic
+def zakaz_oplata(request, zakaz_id):
+    zakaz = get_object_or_404(Zakaz, pk=zakaz_id)
+    if zakaz.payment:
+        messages.error(request, 'Заказ уже помечен как оплаченный.')
+        return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
+    total_cost = sum(i.price * i.quantity for i in ZakazItem.objects.filter(zakaz=zakaz))
+    balance = Balance.objects.get(team=zakaz.team)
+    if balance.money < total_cost:
+        messages.error(request, 'Недостаточно средств на балансе для оплаты заказа.')
+        return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
+
+    balance.money -= total_cost
+    balance.save()
+
+    zakaz.payment = True
+    zakaz.status = Status.objects.get(name='Проверен банком')
+    zakaz.save()
+
+    messages.success(request, f'Заказ #{zakaz_id} успешно оплачен. Сумма {total_cost} списана с баланса.')
+    return redirect('bank:bank_list')
+
+
+@login_required
 def zakaz_list(request):
     if request.GET.get('team'):
         zakazy = Zakaz.objects.filter(team=request.GET.get('team')).order_by('-id')

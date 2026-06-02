@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Balance, Zakaz, ZakazItem, Credit, CreditPayment, Premia
+from simple_history.admin import SimpleHistoryAdmin
 
 
 STATUS_CHOICES = (
@@ -9,8 +10,9 @@ STATUS_CHOICES = (
     ('Завершен', 'Завершен'),
 )
 
-class BalanceAdmin(admin.ModelAdmin):
+class BalanceAdmin(SimpleHistoryAdmin):
     list_display=('team', 'money', )
+    history_list_display = ['money', 'history_date', 'history_user']
     search_fields = ('name',)
     empty_value_display = '-пусто-'
 
@@ -37,6 +39,7 @@ class PremiaAdmin(admin.ModelAdmin):
     list_display = ('team', 'amount', 'year')
     search_fields = ('team', )
     empty_value_display = '-пусто-'
+
 
 
 

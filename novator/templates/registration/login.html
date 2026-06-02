@@ -2,34 +2,43 @@
 
 {% block content %}
 
-<h2>Вход в систему</h2>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2 class="mb-3">Вход в систему</h2>
 
-<!-- Форма отправляет данные на этот же URL методом POST -->
-<form method="post">
-    <!-- Тег csrf_token обязателен для защиты от CSRF-атак -->
-    {% csrf_token %}
+            <form method="post" class="card p-4 shadow-sm">
+                {% csrf_token %}
 
-    <!-- Вывод общих ошибок аутентификации (например, "Пожалуйста, введите корректные Имя пользователя и Пароль.") -->
-    {{ form.non_field_errors }}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
 
-    <div class="field-wrapper">
-        {{ form.username.label_tag }}
-        {{ form.username }}
-        {{ form.username.errors }}
+                <div class="mb-3">
+                    {{ form.username.label_tag }}
+                    {{ form.username.as_widget }}
+                    {% if form.username.errors %}
+                        <div class="invalid-feedback d-block">{{ form.username.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.password.label_tag }}
+                    {{ form.password.as_widget }}
+                    {% if form.password.errors %}
+                        <div class="invalid-feedback d-block">{{ form.password.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <input type="hidden" name="next" value="{{ next }}">
+                    <button type="submit" class="btn btn-primary">Войти</button>
+                </div>
+            </form>
+        </div>
     </div>
-
-    <div class="field-wrapper">
-        {{ form.password.label_tag }}
-        {{ form.password }}
-        {{ form.password.errors }}
-    </div>
-
-    <div>
-        <input type="submit" value="Войти">
-    </div>
-
-    <!-- Скрытое поле 'next' для редиректа после входа -->
-    <input type="hidden" name="next" value="{{ next }}">
-</form>
+</div>
 
 {% endblock %}

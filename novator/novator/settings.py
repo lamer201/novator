@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'debug_toolbar',
     'constance',
+    'simple_history',
 ]
 
 MIDDLEWARE = [

@@ -17,8 +17,8 @@
                     <strong>Команда:</strong> {{ zakaz.team.name }}<br>
                     <strong>Год:</strong> {{ zakaz.year }}<br>
                     <strong>Месяц:</strong> {{ zakaz.month }}<br>
-                    <strong>Оплата:</strong> {{ zakaz.payment|floatformat:0|intcomma }} ₽<br>
-                    <strong>Выдано:</strong> {{ zakaz.issued|floatformat:0|intcomma }} ₽<br>
+                    <strong>Оплата:</strong> {{ zakaz.payment }}<br>
+                    <strong>Выдано:</strong> {{ zakaz.issued }}<br>
                     <strong>Статус:</strong> {{ zakaz.status.name }}
                 </div>
                 <div class="col-md-6 text-end">
@@ -58,7 +58,30 @@
             </div>
             <div class="mt-4">
                 {% if zakaz.status.pk != 4 %}
-                <a href="{% url 'bank:zakaz_edit' zakaz.id %}" class="btn btn-success">Редактировать</a>
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                       <a href="{% url 'bank:zakaz_edit' zakaz.id %}" class="btn btn-success">Редактировать</a> 
+                    </div>
+                    <div class="col-auto">
+                        {% if zakaz.payment == False %}
+                       <a href="{% url 'bank:zakaz_oplata' zakaz.id %}" class="btn btn-success">Оплатить</a> 
+                        {% else %}
+                       <a href="" class="btn btn-secondary" disabled>Оплачено</a> 
+                        {% endif %}
+                    </div>
+                    <div class="col-auto">
+                            <form action="{% url 'bank:zakaz_otmena' zakaz.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            {% if zakaz.status.pk == 4 %}
+                            <button type="submit" class="btn btn-secondary" disabled>Отменён</button>
+                            {% elif zakaz.status.pk == 3 %}
+                            <button type="submit" class="btn btn-secondary" disabled>Отменить</button>
+                            {% else %}
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Отменить заказ #{{ zakaz.id }}?');">Отменить</button>
+                            {% endif %} 
+                    </div>
+                </div>
+                
                 {% endif %}
             </div>
             <div class="mt-4">

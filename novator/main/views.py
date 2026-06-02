@@ -6,6 +6,7 @@ from django.db import transaction
 from bank.models import Balance, Zakaz
 from main.models import Status, Team
 from bank.func import give_money
+from mtr.models import Stock
 
 from .models import Team
 from bank.models import Balance, Zakaz
@@ -42,4 +43,11 @@ def next_year(request):
         config.YEAR = request.POST.get('year', config.YEAR)
         for team in Team.objects.filter(status=True):
             give_money(team)
-    return render(request, 'main/control.html', {'year': config.YEAR})
+    return render(request, 'main/next_year.html', {'year': config.YEAR})
+
+
+def control(request):
+    teams = Team.objects.filter(status=True)
+    stock = Stock.objects.filter(warehouse__team__in=teams)
+    stock_by_skalad = Stock.objects.filter(warehouse__team='')
+    return render(request, 'main/control.html', {'teams': teams, 'stock': stock, 'stock_by_skalad': stock_by_skalad})

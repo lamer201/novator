@@ -9,25 +9,36 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="mb-0">Страничка ведущего</h2>
     <div>
+        <a href="{% url 'main:next_year' %}" class="btn btn-outline-primary d-inline-flex align-items-center">
+            Перевести год
+        </a>
     </div>
   </div>
-
-    <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
-<form method="post" action="{% url 'main:next_year' %}">
-    {% csrf_token %}
-    <select name='year' class="form-select d-inline-block w-auto me-2">   
-            <option value="{{ year }}">{{ year }}</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-    </select>
-    <button type="submit" class="btn btn-outline-primary d-inline-flex align-items-center">
-      Перевести год
-    </button>
-  </form>
+  <div class="container my-4">
+    <h3>Статистика по командам</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Команда</th>
+          <th>Баланс</th>
+          <th>Всего куплено км. труб</th>
+          <th>ГРС запущено</th>
+          <th>Очки экологии</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for team in teams %}
+        <tr>
+          <td>{{ team.name }}</td>
+          <td>{{ team.balance.money }}</td>
+          <td>{% for i in truba %}{% if i.zakaz.team == team %}{{ i }}{% endif %}{% endfor %}</td>
+          <td>{{ team.grs_launched }}</td>
+          <td>{{ team.eco_scores.score  }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
     </div>
 
-</div>
 
 {% endblock %}

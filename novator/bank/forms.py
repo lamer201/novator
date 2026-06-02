@@ -106,8 +106,14 @@ class ZakazFormShtraf(forms.Form):
     shtraf_8 = forms.IntegerField(label='Штраф 8', required=False)
     shtraf_9 = forms.IntegerField(label='Штраф 9', required=False)
     shtraf_10 = forms.IntegerField(label='Штраф 10', required=False)
+    shtraf_11 = forms.IntegerField(label='Штраф 11', required=False)
+    shtraf_12 = forms.IntegerField(label='Штраф 12', required=False)
+    shtraf_13 = forms.IntegerField(label='Штраф 13', required=False)
+    shtraf_14 = forms.IntegerField(label='Штраф 14', required=False)
+    shtraf_15 = forms.IntegerField(label='Штраф 15', required=False)
+    shtraf_16 = forms.IntegerField(label='Штраф 16', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
-    category = forms.CharField(widget=forms.HiddenInput(), initial='shtraf')
+    category = forms.CharField(widget=forms.HiddenInput(), initial='shtrafs')
 
 
 class ZakazFormCredit(forms.Form):

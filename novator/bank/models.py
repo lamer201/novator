@@ -1,12 +1,14 @@
 from django.db import models
 from main.models import Status, Team, Material, Category
 from constance import config
+from simple_history.models import HistoricalRecords
 
 
 
 class Balance(models.Model):
     team = models.OneToOneField(Team, on_delete=models.CASCADE, related_name='balance')
     money = models.FloatField(max_length=10, verbose_name='Баланс')
+    history = HistoricalRecords()
 
 
 
@@ -65,6 +67,12 @@ class ZakazItem(models.Model):
     @property
     def calculate_profit(self):
         return self.profit_koeff * self.profit_val
+    
+    @property
+    def calculate_total_km(self):
+        if self.material.category.slug == 'trubi':
+            return self.quantity * 20
+        return 0
 
 
 class Credit(models.Model):

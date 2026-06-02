@@ -70,5 +70,32 @@
       {% endif %}
     </div>
   </div>
+  <div class="card mt-4">
+    <div class="card-body">
+      <h5 class="card-title">Склад</h5>
+      {% if stock %}
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Материал</th>
+                <th>Количество</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in stock %}
+                <tr>
+                  <td>{{ item.material.name }}</td>
+                  <td>{{ item.quantity|floatformat:0 }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>Склад не найден.</p>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}

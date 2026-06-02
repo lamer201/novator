@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Аудит{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4">Команда: {{ team.name }}</h2>
+  <div class="d-flex justify-content-left align-items-center mb-4 gap-3">
+  <label class="form-label me-2">Баланс</label>
+  <input type ='text' id="myText" readonly class="form-control w-auto" value="{{ team.balance.money|floatformat:0|intcomma }} ₽">
+  </div>
+
+  <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
+    <a href="{% url 'audit:index' %}" class="btn btn-secondary">Назад к списку команд</a>
+  </div>
+</div>
+{% endblock %}

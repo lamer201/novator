@@ -23,7 +23,8 @@ def team_detail(request, team_id):
     team = Team.objects.get(id=team_id)
     zakazy = Zakaz.objects.filter(team=team, category__slug__in=['trubi','ks','grs'])
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
-    return render(request, 'contactor/team_detail.html', {'team': team, 'zakazy': zakazy, 'zakazy_items': zakazy_items})
+    stock = Stock.objects.filter(warehouse__team=team, material__category__slug='eco')
+    return render(request, 'contactor/team_detail.html', {'team': team, 'zakazy': zakazy, 'zakazy_items': zakazy_items, 'stock': stock})
 
 @login_required
 @transaction.atomic

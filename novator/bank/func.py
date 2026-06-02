@@ -159,7 +159,7 @@ def make_zakaz_obuchenie(form):
     else:
          message = f'Недостаточно средств на балансе для оплаты обучения. Необходимо {total_price}, а на балансе {balance.money}.'
          return JsonResponse({'error': message}, status=400)
-            
+         
     # Create new order
     zakaz = Zakaz.objects.create(
         team=team,

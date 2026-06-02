@@ -72,6 +72,59 @@
                 </div>
             </div>
         </div>
+        <div class="row mt-4">
+            <div>
+                {% if teams %}
+                <h2 class="mb-3">Ваши команды</h2>
+                <div class="list-group">
+                    <table class="table table-striped table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">Команда</th>
+                                <th scope="col">Мастер ЛЭС</th>
+                                <th scope="col">Оператор ГРС</th>
+                                <th scope="col">Инженер ГКС</th>
+                                <th scope="col">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for team in teams %}
+                            <tr>
+                                <td>{{ team.name }}</td>
+                                <td>
+                                    {% if team.learn_les %}
+                                        <span class="badge bg-success">Пройдено</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Не пройдено</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if team.learn_grs %}
+                                        <span class="badge bg-success">Пройдено</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Не пройдено</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if team.learn_ks %}
+                                        <span class="badge bg-success">Пройдено</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Не пройдено</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'learning:team_detail' team.id %}" class="btn btn-sm btn-outline-primary">Подробнее</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+                {% endif %}
+            </div>
     </div>
 
 {% endblock %}

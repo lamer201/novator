@@ -181,3 +181,5 @@ CONSTANCE_CONFIG = {
         'Сумма денег, выдаваемая командам в начале года',         # Описание (help text)
     ),
 }
+
+LOGILOGIN_REDIRECT_URL = '/'

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Вход в систему</h2>
+
+<!-- Форма отправляет данные на этот же URL методом POST -->
+<form method="post">
+    <!-- Тег csrf_token обязателен для защиты от CSRF-атак -->
+    {% csrf_token %}
+
+    <!-- Вывод общих ошибок аутентификации (например, "Пожалуйста, введите корректные Имя пользователя и Пароль.") -->
+    {{ form.non_field_errors }}
+
+    <div class="field-wrapper">
+        {{ form.username.label_tag }}
+        {{ form.username }}
+        {{ form.username.errors }}
+    </div>
+
+    <div class="field-wrapper">
+        {{ form.password.label_tag }}
+        {{ form.password }}
+        {{ form.password.errors }}
+    </div>
+
+    <div>
+        <input type="submit" value="Войти">
+    </div>
+
+    <!-- Скрытое поле 'next' для редиректа после входа -->
+    <input type="hidden" name="next" value="{{ next }}">
+</form>
+
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Оформление штрафа{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4">Выписать штраф</h2>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+    
+        {% if form %}
+        {% for field in form %}
+            <div class="mb-3 mt-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
+            </div>
+        {% endfor %}
+        <div class="text-center mt-4">
+        <button type="submit" class="btn btn-danger">Выписать штраф</button>
+        </div>
+        </form>
+        {% endif %}
+          <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
+  <a href="{% url 'audit:index' %}" class="btn btn-secondary">
+  Назад к списку команд</a>
+  </div>
+
+</div>
+{% endblock %}

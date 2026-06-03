@@ -81,7 +81,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 } 
-""" DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'novatory',     # Название базы данных
@@ -184,4 +184,6 @@ CONSTANCE_CONFIG = {
     ),
 }
 
-LOGILOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/' # Куда попадает пользователь после выхода
+LOGIN_URL = '/accounts/login/'  # URL страницы входа (если название другое, укажите здесь)[reference:5]

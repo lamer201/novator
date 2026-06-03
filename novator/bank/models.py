@@ -136,3 +136,27 @@ class TotalKm(models.Model):
         items = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug='trubi')
         self.total_km = sum(item.quantity * 20 for item in items)
         return self.total_km
+
+
+class HistoryOperation(models.Model):
+    OPERATION_CHOICES = (
+        ('debit', 'Списание'),
+        ('credit', 'Пополнение'),
+        ('premia', 'Премия'),
+        ('zakaz', 'Заказ'),
+        ('refund', 'Возврат'),
+        ('credit_payment', 'Платеж по кредиту'),
+        ('adjustment', 'Корректировка'),
+    )
+
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='history')
+    operation_type = models.CharField(max_length=30, choices=OPERATION_CHOICES, verbose_name='Тип операции')
+    amount = models.FloatField(verbose_name='Сумма операции')
+    balance_before = models.FloatField(null=True, blank=True, verbose_name='Баланс до операции')
+    balance_after = models.FloatField(null=True, blank=True, verbose_name='Баланс после операции')
+    description = models.TextField(blank=True, verbose_name='Описание операции')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата операции')
+    history = HistoricalRecords()
+
+    def __str__(self):
+        return f"{self.team.name} — {self.get_operation_type_display()} {self.amount}"

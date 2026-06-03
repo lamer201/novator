@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Страничка ведущего{% endblock %}
 
@@ -30,15 +31,36 @@
         {% for team in teams %}
         <tr>
           <td>{{ team.name }}</td>
-          <td>{{ team.balance.money }}</td>
-          <td>{% for i in truba %}{% if i.zakaz.team == team %}{{ i }}{% endif %}{% endfor %}</td>
-          <td>{{ team.grs_launched }}</td>
-          <td>{{ team.eco_scores.score  }}</td>
+          <td>{{ team.balance.money|floatformat:0|intcomma }}</td>
+          <td>{% for item in teams_items %}{% if item.team == team %}{{ item.items_count }}{% endif %}{% endfor %}</td>
+          <td>{% for grs in teams_grs %}{% if grs.team == team %}{{ grs.total_grs }}{% endif %}{% endfor %}</td>
+          <td>{{ team.eco_scores.score|floatformat:0  }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
     </div>
-
+    <div class="container my-4">
+    <h3>Остатки на складах</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Материал</th>
+          <th>Количество</th>
+          <th>На складе команды</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stock in stock_by_skalad %}
+        <tr>
+          <td>{{ stock.material.name }}</td>
+          <td>{{ stock.quantity| floatformat:0 }}</td>
+          <td>{% if stock.warehouse.name %}{{ stock.warehouse.name }}{% else %}Склад{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p>Всего ГРС выдано: {{ stock_by_skalad_grs }}</p>
+  </div>
 
 {% endblock %}

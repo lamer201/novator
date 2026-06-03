@@ -58,11 +58,11 @@
                         </td>
                         <td>
                             <div class="btn-group" role="group">
-                            {% if zakaz.status.pk == 3 %}
+                            {% if zakaz.status.pk == 3 or zakaz.status.pk == 5 %}
                                 <button class="btn btn-sm btn-secondary" disabled>
                                     <i class="fas fa-edit"></i> Редактировать   
                                 </button>
-                            {% elif zakaz.status.pk == 4 %}
+                            {% elif zakaz.status.pk == 4  %}
                                 <button class="btn btn-sm btn-secondary" disabled>
                                     <i class="fas fa-edit"></i> Редактировать   
                                 </button>
@@ -78,7 +78,7 @@
                             {% csrf_token %}
                             {% if zakaz.status.pk == 4 %}
                             <button type="submit" class="btn btn-secondary" disabled>Отменён</button>
-                            {% elif zakaz.status.pk == 3 %}
+                            {% elif zakaz.status.pk == 3 or zakaz.status.pk == 5 %}
                             <button type="submit" class="btn btn-secondary" disabled>Отменить</button>
                             {% else %}
                             <button type="submit" class="btn btn-danger" onclick="return confirm('Отменить заказ #{{ zakaz.id }}?');">Отменить</button>

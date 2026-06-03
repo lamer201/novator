@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.db import transaction
 from .forms import *
 from main.models import ItemProperty
-from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment
+from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment, HistoryOperation
 from mtr.models import Sklad, Stock, Shipment
 from .func import check_active_credit, get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance, make_zakaz_obuchenie, check_obuchenie
 from constance import config
@@ -244,6 +244,15 @@ def zakaz_delete(request, zakaz_id):
                 balance = Balance.objects.get(team=zakaz.team)
                 balance.money += total_refund
                 balance.save()
+                history = HistoryOperation.objects.create(
+                    team=zakaz.team,
+                    operation_type='credit',
+                    amount=test_balance,
+                    balance_before=balance.money - total_refund,
+                    balance_after=balance.money,
+                    description= f'Возврат средств после удаления заказа {zakaz}'
+                    )
+                history.save()
             except Balance.DoesNotExist:
                 messages.error(request, 'Баланс команды не найден. Удаление отменено.')
                 return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
@@ -258,6 +267,7 @@ def zakaz_delete(request, zakaz_id):
     return render(request, 'bank/zakaz_confirm_delete.html', {'zakaz': zakaz})
 
 @login_required
+@transaction.atomic
 def zakaz_otmena(request, zakaz_id):
     zakaz = get_object_or_404(Zakaz, pk=zakaz_id)
     if request.method == 'POST':
@@ -269,6 +279,15 @@ def zakaz_otmena(request, zakaz_id):
                 balance = Balance.objects.get(team=zakaz.team)
                 balance.money += total_refund
                 balance.save()
+                history = HistoryOperation.objects.create(
+                    team=zakaz.team,
+                    operation_type='credit',
+                    amount=total_refund,
+                    balance_before=balance.money - total_refund,
+                    balance_after=balance.money,
+                    description= f'Возврат средств после отмены заказа {zakaz}'
+                    )
+                history.save()
             except Balance.DoesNotExist:
                 messages.error(request, 'Баланс команды не найден. Отмена заказа отменена.')
                 return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
@@ -299,7 +318,15 @@ def zakaz_oplata(request, zakaz_id):
 
     balance.money -= total_cost
     balance.save()
-
+    history = HistoryOperation.objects.create(
+        team=zakaz.team,
+        operation_type='debit',
+        amount=total_cost,
+        balance_before=balance.money + total_cost,
+        balance_after=balance.money,
+        description= f'Оплата заказа {zakaz}'
+        )
+    history.save()
     zakaz.payment = True
     zakaz.status = Status.objects.get(name='Проверен банком')
     zakaz.save()
@@ -356,6 +383,7 @@ def team_detail(request, team_id):
     zakazy_ks = zakazy.filter(zakazitem__material__category__slug='ks').count()
     zakazy_shtraf = zakazy.filter(zakazitem__material__category__slug='shtrafs').count()
     objects = ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs', zakaz__status__name='Выдан снабженцем')
+    history = HistoryOperation.objects.filter(team=team).order_by('-id')
 
 
     context = {
@@ -370,6 +398,7 @@ def team_detail(request, team_id):
         'zakazy_ks': zakazy_ks,
         'zakazy_shtraf': zakazy_shtraf,
         'objects': objects,
+        'history': history,
     }
     return render(request, 'bank/team_detail.html', context)
 
@@ -497,6 +526,15 @@ def zakaz_credit(request):
         credit.save()
         balance.money += amount
         balance.save()
+        history = HistoryOperation.objects.create(
+            team=team,
+            operation_type='credit',
+            amount=test_balance,
+            balance_before=balance.money - amount,
+            balance_after=balance.money,
+            description= f'Получение кредита на сумму {amount}'
+            )
+        history.save()
         messages.success(request, f'Кредит на сумму {amount} создан для команды "{team.name}".')
         return redirect('bank:credit_detail', credit_id=credit.pk)
     form = ZakazFormCredit()
@@ -530,6 +568,15 @@ def make_payment(request, credit_id):
         credit.remains -= payment_amount
         #credit.remains_percent -= payment_amount * (credit.percent / 100)
         credit.save()
+        history = HistoryOperation.objects.create(
+                team=credit.team,
+                operation_type='debit',
+                amount=test_balance,
+                balance_before=balance.money + payment_amount,
+                balance_after=balance.money,
+                description= f'Платеж по кредиту {credit.pk}'
+                )
+        history.save()
 
         CreditPayment.objects.create(
             credit=credit,
@@ -562,6 +609,15 @@ def new_premia(request):
 
         balance.money += amount
         balance.save()
+        history = HistoryOperation.objects.create(
+                team=team,
+                operation_type='debit',
+                amount=test_balance,
+                balance_before=balance.money - amount,
+                balance_after=balance.money,
+                description= f'Получение премии на сумму {amount}'
+                )
+        history.save()
         premia = Premia.objects.create(
             team=team,
             amount=amount,

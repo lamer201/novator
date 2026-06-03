@@ -171,6 +171,40 @@
     </div>
   </main>
 
+  <div class="container my-4">
+    <h5>История операций</h5>
+    {% if history and history.exists %}
+      <div class="table-responsive">
+        <table class="table table-sm table-striped">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Тип</th>
+              <th class="text-end">Сумма</th>
+              <th class="text-end">Баланс до</th>
+              <th class="text-end">Баланс после</th>
+              <th>Комментарий</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for op in history %}
+              <tr>
+                <td>{{ op.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+                <td>{{ op.get_operation_type_display }}</td>
+                <td class="text-end">{{ op.amount|floatformat:0|intcomma }}</td>
+                <td class="text-end">{% if op.balance_before %}{{ op.balance_before|floatformat:0|intcomma }}{% else %}-{% endif %}</td>
+                <td class="text-end">{% if op.balance_after %}{{ op.balance_after|floatformat:0|intcomma }}{% else %}-{% endif %}</td>
+                <td>{{ op.description }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">Нет операций в истории</p>
+    {% endif %}
+  </div>
+
   <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Balance, Zakaz, ZakazItem, Credit, CreditPayment, Premia
+from .models import Balance, Zakaz, ZakazItem, Credit, CreditPayment, Premia, HistoryOperation
 from simple_history.admin import SimpleHistoryAdmin
 
 
@@ -40,7 +40,11 @@ class PremiaAdmin(admin.ModelAdmin):
     search_fields = ('team', )
     empty_value_display = '-пусто-'
 
-
+class HistoryOperationAdmin(SimpleHistoryAdmin):
+    list_display = ('team', 'operation_type', 'amount', 'balance_before', 'balance_after', 'created_at')
+    history_list_display = ['operation_type', 'amount', 'balance_before', 'balance_after', 'history_date', 'history_user']
+    list_filter = ('operation_type', 'created_at')
+    search_fields = ('team__name', 'description')
 
 
 admin.site.register(Balance, BalanceAdmin)
@@ -49,3 +53,4 @@ admin.site.register(ZakazItem, ZakazItemAdmin)
 admin.site.register(Credit, CreditAdmin)
 admin.site.register(CreditPayment, CreditPaymentAdmin)
 admin.site.register(Premia, PremiaAdmin)
+admin.site.register(HistoryOperation, HistoryOperationAdmin)

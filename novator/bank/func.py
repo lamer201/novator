@@ -1,11 +1,13 @@
 from django.shortcuts import get_list_or_404, get_object_or_404, render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from .models import Balance, Credit, Team, Zakaz, Material, ZakazItem, Status
+from .models import Balance, Credit, Team, Zakaz, Material, ZakazItem, Status, HistoryOperation
 from main.models import Category, ItemProperty
 from mtr.models import Stock
 from main.models import ItemProperty
 from constance import config
+from django.db import transaction
+
 
 def get_sum(form):
     sum_material=0
@@ -87,9 +89,18 @@ def make_zakaz(form):
     new_balance = balance.money - test_balance
     balance.money = new_balance
     balance.save()
+    history = HistoryOperation.objects.create(
+         team=team,
+         operation_type='debit',
+         amount=test_balance,
+         balance_before=new_balance + test_balance,
+         balance_after=balance.money,
+         description= f'Списание за заказ {zakaz}'
+    )
+    history.save()
     return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)  # Replace with your success URL
 
-
+@transaction.atomic
 def make_zakaz_buildings(form):
     # Get form data
     team = Team.objects.get(pk=form.cleaned_data['team']) 
@@ -128,6 +139,15 @@ def make_zakaz_buildings(form):
     new_balance = balance.money - price
     balance.money = new_balance
     balance.save()
+    history = HistoryOperation.objects.create(
+         team=team,
+         operation_type='debit',
+         amount=price,
+         balance_before=new_balance + price,
+         balance_after=balance.money,
+         description= f'Списание за заказ {zakaz}'
+    )
+    history.save()
     return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)  # Replace with your success URL
 
 
@@ -208,6 +228,15 @@ def make_zakaz_obuchenie(form):
     new_balance = balance.money - total_price
     balance.money = new_balance
     balance.save()
+    history = HistoryOperation.objects.create(
+         team=team,
+         operation_type='debit',
+         amount=total_price,
+         balance_before=new_balance + total_price,
+         balance_after=balance.money,
+         description= f'Списание за заказ {zakaz}'
+    )
+    history.save()
     zakaz.status = Status.objects.get(name='Проверен банком')
     zakaz.save()
     return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
@@ -215,7 +244,26 @@ def make_zakaz_obuchenie(form):
 def give_money(team):
     balance = Balance.objects.get(team=team)
     balance.money += config.MONEY_PER_YEAR
+    history = HistoryOperation.objects.create(
+        team=team,
+        operation_type='credit',
+        amount=config.MONEY_PER_YEAR,
+        balance_before=balance.money - config.MONEY_PER_YEAR, 
+        balance_after=balance.money,
+        description= f'Начисление ежегодной премии в сумме {config.MONEY_PER_YEAR}'
+    )
     for grs in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs'):
         balance.money += grs.calculate_profit
+        history = HistoryOperation.objects.create(
+        team=team,
+        operation_type='credit',
+        amount=grs.calculate_profit,
+        balance_before=balance.money - grs.calculate_profit, 
+        balance_after=balance.money,
+        description= f'Прибыль от грс {grs.material.name}'
+    )
+    history.save()
     balance.save()
     return JsonResponse({'text': balance.money})
+
+

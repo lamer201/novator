@@ -77,7 +77,7 @@
 
             <div class="d-flex gap-2 mt-4">
               <a href="{% url 'bank:zakaz_list' %}?team={{team.pk}}" class="btn btn-outline-secondary">Смотреть заказы</a>
-              <a href="{% url 'bank:zakaz_kapremont' team.pk %}" class="btn btn-outline-primary">Заказ на капитальный ремонт</a>
+              <a href="{% url 'bank:zakaz_kapremont' team.pk %}" class="btn btn-outline-primary">Списание материалов</a>
               <a href="{% url 'bank:bank_list' %}" class="btn btn-link">К списку команд</a>
             </div>
             <div class="mt-4">

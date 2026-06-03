@@ -9,6 +9,9 @@ def get_choices():
         choices.append((instance.pk, instance.name))
     return choices
 
+def get_choices_test(choices):
+    return choices
+
 def get_shtraf_choices():
     choices = []
     for instance in Material.objects.filter(category__pk=4):
@@ -20,6 +23,8 @@ def get_grs_choices():
     for item in Material.objects.filter(category__slug='grs'):
         choices.append((item.pk,item.name))
     return choices
+
+get_ks_bank = lambda: [(item.pk, item.name) for item in Material.objects.filter(category__slug='bank_operations')]
 
 get_ks_choices = lambda: [(item.pk, item.name) for item in Material.objects.filter(category__slug='ks')]
 
@@ -38,8 +43,17 @@ KOEFF_CHOICES = (
     (3.0, 'Наценка 200%'),
 )
 
+class ZakazFormBank(forms.Form):
+    team = forms.ChoiceField(label='Команда',choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+    team_balance = forms.IntegerField(label='Узнать баланс', required=False)
+    otmena = forms.IntegerField(label='Отмена заказа', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='bank_operations')
+
+
+
 class ZakazFormTrub(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+    team = forms.ChoiceField(label='Команда',choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     TDU500 = forms.IntegerField(label='Труба Ду 500', required=False)
     TDU1000 = forms.IntegerField(label='Труба Ду 1000', required=False)
     UDU500 = forms.IntegerField(label='Угол Ду 500', required=False)
@@ -52,6 +66,7 @@ class ZakazFormTrub(forms.Form):
     TDU1000PP = forms.IntegerField(label='Подводный переход ДУ 1000', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='trubi')
+      
 
 
 class ZakazFormGRS(forms.Form):
@@ -130,6 +145,8 @@ class PremiaForm(forms.Form):
 
 
 class KapremontForm(forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+    kap_rem = forms.IntegerField(label='Капремонт', required=True, initial=1)
     TDU500 = forms.IntegerField(label='Труба Ду 500', required=False)
     TDU1000 = forms.IntegerField(label='Труба Ду 1000', required=False)
     UDU500 = forms.IntegerField(label='Угол Ду 500', required=False)
@@ -148,5 +165,5 @@ class KapremontForm(forms.Form):
     kap_rem_tr_du1000 = forms.IntegerField(label='Капремонт Тройник Ду 1000', required=False)
     kap_rem_pr = forms.IntegerField(label='Капремонт Переходинк 1000/500', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
-    category = forms.CharField(widget=forms.HiddenInput(), initial='kapremont')
+    category = forms.CharField(widget=forms.HiddenInput(), initial='trubi')
     

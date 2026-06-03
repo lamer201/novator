@@ -5,6 +5,7 @@ from mtr.models import Shipment, Sklad, Stock
 from .models import EcoCompensation, EcoCompensationOperation
 from main.models import Material, Status, Team, EcoScore
 from bank.models import Zakaz, ZakazItem
+from bank.func import calculate_win_score
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.contrib.auth import get_user_model
@@ -21,9 +22,10 @@ def index(request):
 
 def team_detail(request, team_id):
     team = Team.objects.get(id=team_id)
-    zakazy = Zakaz.objects.filter(team=team, category__slug__in=['trubi','ks','grs'])
+    zakazy = Zakaz.objects.filter(team=team, category__slug__in=['trubi','ks','grs'], category__pk__in=['3','5'])
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     stock = Stock.objects.filter(warehouse__team=team, material__category__slug='eco')
+
     return render(request, 'contactor/team_detail.html', {'team': team, 'zakazy': zakazy, 'zakazy_items': zakazy_items, 'stock': stock})
 
 @login_required

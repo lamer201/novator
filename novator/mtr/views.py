@@ -31,7 +31,7 @@ def check_obuchenie(zakaz):
 @login_required
 def index(request):
     zakazy = Zakaz.objects.filter(status__pk=2,payment=True,issued=False,category__slug__in=['trubi', 'ks', 'grs'], team__name__in=request.user.userprofile.teams.values_list('name', flat=True)) 
-    zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
+    zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug__in=['trubi', 'ks', 'grs'])
     sklad = Sklad.objects.filter(is_active=True, name = request.user.userprofile.sklad)
     stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'ks'])
     teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
@@ -123,7 +123,7 @@ def shipment(request, pk):
     if zakaz.issued == True:
         messages.error(request, 'Перемещение уже совершено измените статус заказа вручную.')
         return render(request, 'mtr/index.html')
-    material = ZakazItem.objects.filter(zakaz=zakaz)
+    material = ZakazItem.objects.filter(zakaz=zakaz, material__category__slug__in=['trubi', 'ks', 'grs'])
     sklad_from = Sklad.objects.get(name=request.user.userprofile.sklad)
     sklad_to = Sklad.objects.get(team=zakaz.team)
     if material.filter(material__category__slug='trubi').exists():
@@ -154,7 +154,7 @@ def shipment(request, pk):
     team.eco_scores.score -= zakaz.total_eco_score
     team.eco_scores.save()
     zakaz.issued = True
-    zakaz.status = Status.objects.get(pk=3)
+    zakaz.status = Status.objects.get(pk=5)
     zakaz.save()
     messages.success(request, 'Перемещение успешно выполнено.')
     return redirect('mtr:index')

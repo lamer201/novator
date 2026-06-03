@@ -24,7 +24,8 @@
           <th>Баланс</th>
           <th>Всего куплено км. труб</th>
           <th>ГРС запущено</th>
-          <th>Очки экологии</th>
+          <th>Очки экологии</th>\
+          <th>Победные очки</th>
         </tr>
       </thead>
       <tbody>
@@ -35,11 +36,14 @@
           <td>{% for item in teams_items %}{% if item.team == team %}{{ item.items_count }}{% endif %}{% endfor %}</td>
           <td>{% for grs in teams_grs %}{% if grs.team == team %}{{ grs.total_grs }}{% endif %}{% endfor %}</td>
           <td>{{ team.eco_scores.score|floatformat:0  }}</td>
+          <td>{% for item in win_score %}{% if item.team == team %}{{ item.score|floatformat:2 }}{% endif %}{% endfor %}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
     </div>
+    <div class="container my-4">
+      </div>
     <div class="container my-4">
     <h3>Остатки на складах</h3>
     <table class="table table-striped">

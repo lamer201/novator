@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 from django.db import transaction
 from bank.models import Balance, Zakaz
 from main.models import Status, Team
-from bank.func import give_money
+from bank.func import give_money, calculate_win_score
 from mtr.models import Stock, Sklad, Shipment
 from django.db.models import Sum
 from .models import Team
@@ -55,10 +55,12 @@ def control(request):
 
     teams_items = []
     teams_grs = []
+    win_score = []
     for team in teams:
         team_stock = Stock.objects.filter(warehouse__team=team)
+        win_score.append({'team': team, 'score': calculate_win_score(team)}) 
         total = team_stock.filter(material__category__slug='trubi').aggregate(total=Sum('quantity'))['total'] or 0
         total_grs = team_stock.filter(material__category__slug='grs').aggregate(total=Sum('quantity'))['total'] or 0
         teams_items.append({'team': team, 'items_count': total * 20})
         teams_grs.append({'team': team, 'total_grs': total_grs})
-    return render(request, 'main/control.html', {'teams': teams, 'sklad': sklad, 'stock': stock, 'stock_by_skalad': stock_by_skalad, 'teams_items': teams_items, 'teams_grs': teams_grs, 'stock_by_skalad_grs': stock_by_skalad_grs})
+    return render(request, 'main/control.html', {'teams': teams, 'sklad': sklad, 'stock': stock, 'stock_by_skalad': stock_by_skalad, 'teams_items': teams_items, 'teams_grs': teams_grs, 'stock_by_skalad_grs': stock_by_skalad_grs, 'win_score': win_score})

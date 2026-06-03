@@ -32,6 +32,10 @@ def create_zakaz(request):
         type_form = ZakazFormShtraf
     elif request.GET.get('category') == 'truba':
         type_form = ZakazFormTrub
+    elif request.GET.get('category') == 'kapremont':
+        type_form = KapremontForm
+    elif request.GET.get('category') == 'bank':
+        type_form = ZakazFormBank
     else:
         messages.error(request, 'Неверная категория заказа.')
         return redirect('bank:bank_list')
@@ -47,6 +51,12 @@ def create_zakaz(request):
     
     return render(request, 'bank/zakaz.html', {'form': form})
 
+@login_required
+def zakaz_check(request, zakaz_id):
+    zakaz = Zakaz.objects.get(pk=zakaz_id)
+    zakaz.status = Status.objects.get(pk=2)
+    zakaz.save()
+    return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
 
 @login_required
 def create_zakaz_buildings(request):
@@ -67,7 +77,6 @@ def create_zakaz_buildings(request):
         form = type_form()
     
     return render(request, 'bank/zakaz.html', {'form': form})
-
 
 
 @login_required
@@ -247,7 +256,7 @@ def zakaz_delete(request, zakaz_id):
                 history = HistoryOperation.objects.create(
                     team=zakaz.team,
                     operation_type='credit',
-                    amount=test_balance,
+                    amount=total_refund,
                     balance_before=balance.money - total_refund,
                     balance_after=balance.money,
                     description= f'Возврат средств после удаления заказа {zakaz}'
@@ -312,20 +321,31 @@ def zakaz_oplata(request, zakaz_id):
         return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
     total_cost = sum(i.price * i.quantity for i in ZakazItem.objects.filter(zakaz=zakaz))
     balance = Balance.objects.get(team=zakaz.team)
-    if balance.money < total_cost:
-        messages.error(request, 'Недостаточно средств на балансе для оплаты заказа.')
-        return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
-
-    balance.money -= total_cost
-    balance.save()
-    history = HistoryOperation.objects.create(
-        team=zakaz.team,
-        operation_type='debit',
-        amount=total_cost,
-        balance_before=balance.money + total_cost,
-        balance_after=balance.money,
-        description= f'Оплата заказа {zakaz}'
+    if zakaz.category.pk == 6:
+        balance.money += total_cost
+        history = HistoryOperation.objects.create(
+            team=zakaz.team,
+            operation_type='credit',
+            amount=total_cost,
+            balance_before=balance.money - total_cost,
+            balance_after=balance.money,
+            description= f'Получение премии за достижение {zakaz}'
         )
+    else:
+        if balance.money < total_cost:
+            messages.error(request, 'Недостаточно средств на балансе для оплаты заказа.')
+            return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
+        balance.money -= total_cost
+        history = HistoryOperation.objects.create(
+            team=zakaz.team,
+            operation_type='debit',
+            amount=total_cost,
+            balance_before=balance.money + total_cost,
+            balance_after=balance.money,
+            description= f'Оплата заказа {zakaz}'
+        )
+    balance.save()
+    
     history.save()
     zakaz.payment = True
     zakaz.status = Status.objects.get(name='Проверен банком')
@@ -407,42 +427,11 @@ def team_detail(request, team_id):
 def zakaz_kapremont(request, team_id):
     if request.method == 'POST':
         data = request.POST
-        if not any(str(key).startswith('use_') and value == 'on' for key, value in data.items()) and not any(str(key).startswith('remove_') and value == 'on' for key, value in data.items()):
-            messages.error(request, 'Вы не выбрали ни одного материала для добавления или удаления. Пожалуйста, выберите хотя бы один материал и попробуйте снова.')
+        team=Team.objects.get(pk=team_id)
+        if not any(str(key).startswith('remove_') and value == 'on' for key, value in data.items()):
+            messages.error(request, 'Вы не выбрали ни одного материала для списания. Пожалуйста, выберите хотя бы один материал и попробуйте снова.')
             return redirect('bank:zakaz_kapremont', team_id=team_id)
-        if any(str(key).startswith('use_') and value == 'on' for key, value in data.items()):
-            zakaz= Zakaz.objects.create(
-                            team=Team.objects.get(pk=team_id),
-                            year=config.YEAR,
-                            month=0,
-                            payment=True,
-                            status=Status.objects.get(name='Выдан снабженцем'),
-                            description=f'Заказ на капитальный ремонт команды {Team.objects.get(pk=team_id).name}'
-                        )
-            zakaz.save()
         for key, value in data.items():
-            if str(key).startswith('use_') and value == 'on':
-                material_id = key.split('_')[1]
-                stock_item = Stock.objects.get(pk=material_id)
-                material = Material.objects.get(pk=stock_item.material.pk)
-                quantity = data.get(f'use_count_{material_id}', 0)
-                try:
-                    if int(quantity) <= 0:
-                        messages.error(request, f'Неверное количество для материала "{material.name}". Пожалуйста, введите положительное целое число.')
-                        return redirect('bank:zakaz_kapremont', team_id=team_id)    
-                    if quantity:
-                        zakaz_item = ZakazItem.objects.create(
-                            zakaz=zakaz,
-                            material=material,
-                            price=material.price,
-                            quantity=int(quantity),
-                            koeff=0.5
-                        )
-                        zakaz_item.save()
-                        messages.info(request, f'Материал "{material.name}" в количестве {quantity} добавлен в заказ № {zakaz.pk} на капитальный ремонт.')
-                except (ValueError, TypeError):
-                    messages.error(request, f'Неверное количество для материала "{material.name}". Пожалуйста, введите положительное целое число.')
-                    return redirect('bank:zakaz_kapremont', team_id=team_id)
             if str(key).startswith('remove_') and value == 'on':
                 material_id = key.split('_')[1]
                 stock_item = Stock.objects.get(pk=material_id)
@@ -450,17 +439,19 @@ def zakaz_kapremont(request, team_id):
                 material_mtr = Material.objects.get(pk=stock_item.material.pk)
                 shipment = Shipment(
                     from_warehouse=stock_item.warehouse,
-                    to_warehouse=Sklad.objects.get(slug='sklad-1'),
+                    to_warehouse=Sklad.objects.get(name = request.user.userprofile.sklad),
                     material=material_mtr,
                     quantity=material_quantity,
-                    description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при заказе на капремонт'
+                    description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при списании'
                 )
+                team.eco_scores.score += 5 * int(material_quantity)
+                team.eco_scores.save()
                 messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {material_quantity} получен.')
                 try:
                     #material = Material.objects.get(pk=stock_item.material.pk)
                     if stock_item.quantity >= int(material_quantity):
                         shipment.perform_shipment()
-                        messages.success(request, f'Материал "{material_mtr.name}" в количестве {material_quantity} успешно удалён из заказа на капремонт и возвращён на склад.')
+                        messages.success(request, f'Материал "{material_mtr.name}" в количестве {material_quantity} успешно удалён со склада команды и возвращён на склад.')
                         return redirect('bank:zakaz_kapremont', team_id=team_id)
                     else:                        
                         messages.error(request, f'Недостаточно материала "{stock_item.material.name}" на складе для удаления.')
@@ -468,15 +459,12 @@ def zakaz_kapremont(request, team_id):
                 except (Material.DoesNotExist, Stock.DoesNotExist):
                     messages.error(request, 'Материал не найден на складе. Пожалуйста, проверьте данные и попробуйте снова.')
                     return redirect('bank:zakaz_kapremont', team_id=team_id)
-                
-        messages.success(request, 'Заказ на капитальный ремонт сохранён.')
         return redirect('bank:zakaz_kapremont', team_id=team_id)
     team = get_object_or_404(Team, pk=team_id)
     balance = Balance.objects.get(team=team)
     items = ZakazItem.objects.filter(zakaz__status__name='Выдан снабженцем', zakaz__team=team)
     materials = Stock.objects.filter(warehouse__team=team, quantity__gt=0, material__category__pk=1)
-    zakaz_form = KapremontForm()
-    return render(request, 'bank/zakaz_kapremont.html', {'team': team, 'items': items, 'materials': materials, 'balance': balance, 'form': zakaz_form})
+    return render(request, 'bank/zakaz_kapremont.html', {'team': team, 'items': items, 'materials': materials, 'balance': balance})
 
 @login_required
 def credit_list(request):
@@ -529,7 +517,7 @@ def zakaz_credit(request):
         history = HistoryOperation.objects.create(
             team=team,
             operation_type='credit',
-            amount=test_balance,
+            amount=amount,
             balance_before=balance.money - amount,
             balance_after=balance.money,
             description= f'Получение кредита на сумму {amount}'
@@ -571,7 +559,7 @@ def make_payment(request, credit_id):
         history = HistoryOperation.objects.create(
                 team=credit.team,
                 operation_type='debit',
-                amount=test_balance,
+                amount=payment_amount,
                 balance_before=balance.money + payment_amount,
                 balance_after=balance.money,
                 description= f'Платеж по кредиту {credit.pk}'
@@ -612,7 +600,7 @@ def new_premia(request):
         history = HistoryOperation.objects.create(
                 team=team,
                 operation_type='debit',
-                amount=test_balance,
+                amount=amount,
                 balance_before=balance.money - amount,
                 balance_after=balance.money,
                 description= f'Получение премии на сумму {amount}'

@@ -267,3 +267,19 @@ def give_money(team):
     return JsonResponse({'text': balance.money})
 
 
+def calculate_win_score(team):
+    balance = Balance.objects.get(team=team)
+    grs_money = 0
+    grs_potrebiteli = 0
+    bonus_score = 0
+    for grs in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs', zakaz__status__pk=5):
+        grs_money += grs.calculate_profit
+        grs_potrebiteli += int(ItemProperty.objects.get(material=grs.material, property_name='potrebitel').property_value)
+    total_money = balance.money + grs_money
+    if ZakazItem.objects.filter(zakaz__team=team, material__category__slug='premii').exists():
+         for item in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='premii'):
+            bonus_score += int(ItemProperty.objects.get(material=item.material, property_name='winner_score').property_value)
+
+    total_points = (grs_potrebiteli * 0.001) + (total_money * 0.0000001) + (team.eco_scores.score * 0.1) + bonus_score
+    return total_points
+    

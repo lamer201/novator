@@ -42,9 +42,9 @@
                         <tr>
                             <td>{{ item.material.name }}</td>
                             <td>{{ item.quantity }}</td>
-                            <td>{{ item.price }}</td>
+                            <td>{{ item.price|floatformat:0|intcomma }}</td>
                             <td>{{ item.koeff }}</td>
-                            <td>{{ item.get_total }}</td>
+                            <td>{{ item.get_total|floatformat:0|intcomma }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -60,6 +60,9 @@
                 {% if zakaz.status.pk != 4 %}
                 <div class="row align-items-center">
                     <div class="col-auto">
+                        {% if zakaz.status.pk == 1 %}
+                        <a href="{% url 'bank:zakaz_check' zakaz.id %}" class="btn btn-success">Потдвердить</a>
+                        {% endif %}
                        <a href="{% url 'bank:zakaz_edit' zakaz.id %}" class="btn btn-success">Редактировать</a> 
                     </div>
                     <div class="col-auto">

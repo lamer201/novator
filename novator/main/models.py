@@ -45,7 +45,7 @@ class Team(models.Model):
     
 
 class ItemProperty(models.Model):
-    material = models.ForeignKey(Material, on_delete=models.CASCADE)
+    material = models.ForeignKey(Material, on_delete=models.CASCADE, related_name='property')
     property_name = models.CharField(max_length=100)
     property_value = models.CharField(max_length=200)
 

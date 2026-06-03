@@ -2,7 +2,7 @@
 {% load static %}
 
 
-{% block title %}Заказ на капитальный ремонт{% endblock %}
+{% block title %}Списание материалов{% endblock %}
 
 {% block content %}
 
@@ -17,7 +17,7 @@
     {% endfor %}
 </ul>
 {% endif %}
-  <h2 class="mb-4">Заказ на капитальный ремонт</h2>
+  <h2 class="mb-4">Списание материалов</h2>
 
 <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
 </div>
@@ -34,25 +34,7 @@
   <input type ='text' id="myText" readonly class="form-control w-auto" value="{{ balance.money }} ₽">
   </div>
 
-
-    <form method="post" class="needs-validation" novalidate>
-        {% csrf_token %}
-    
-        {% if form %}
-        {% for field in form %}
-            <div class="mb-3 mt-3">
-            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                {{ field }}
-            </div>
-        {% endfor %}
-        <div class="text-center mt-4">
-        <button type="submit" class="btn btn-primary">Создать заказ</button>
-        <a href="{% url 'bank:zakaz_list' %}" class="btn btn-secondary">Cancel</a>
-        </div>
-        </form>
-        {% endif %}
     {% if materials %}
-
         <h3 class="mt-4">Доступные материалы</h3>
         <div class="table-responsive">
         <form method="post">
@@ -62,8 +44,6 @@
             <tr>
               <th>Материал</th>
               <th>Количество</th>
-                <th>Использовать</th>
-                <th>Количество для использования</th>
                 <th>Списать</th>
                 <th>Количество для списания</th>
             </tr>
@@ -73,8 +53,6 @@
             <tr>
               <td>{{ material.material.name }}</td>
               <td><input type="text" name="qty_{{ material.pk }}" value="{{ material.quantity }}" class="form-control" readonly/></td>
-              <td><input type="checkbox" name="use_{{ material.pk }}" class="form-check-input" /></td>
-              <td><input type="text" name="use_count_{{ material.pk }}" value="" class="form-control"/></td>
               <td><input type="checkbox" name="remove_{{ material.pk }}" class="form-check-input" /></td>
               <td><input type="text" name="remove_count_{{ material.pk }}" value="" class="form-control"/></td>
             </tr>

@@ -402,7 +402,7 @@ def team_detail(request, team_id):
     zakazy_grs = zakazy.filter(zakazitem__material__category__slug='grs').count()
     zakazy_ks = zakazy.filter(zakazitem__material__category__slug='ks').count()
     zakazy_shtraf = zakazy.filter(zakazitem__material__category__slug='shtrafs').count()
-    objects = ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs', zakaz__status__name='Выдан снабженцем')
+    objects = ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs', zakaz__status__name='Завершен')
     history = HistoryOperation.objects.filter(team=team).order_by('-id')
 
 
@@ -427,6 +427,12 @@ def team_detail(request, team_id):
 def zakaz_kapremont(request, team_id):
     if request.method == 'POST':
         data = request.POST
+        if request.user.username == 'bank1':
+            sklad = 'sklad-1'
+        if request.user.username == 'bank2':
+            sklad = 'sklad-2'
+        else:
+            sklad = 'sklad-3'
         team=Team.objects.get(pk=team_id)
         if not any(str(key).startswith('remove_') and value == 'on' for key, value in data.items()):
             messages.error(request, 'Вы не выбрали ни одного материала для списания. Пожалуйста, выберите хотя бы один материал и попробуйте снова.')
@@ -439,7 +445,7 @@ def zakaz_kapremont(request, team_id):
                 material_mtr = Material.objects.get(pk=stock_item.material.pk)
                 shipment = Shipment(
                     from_warehouse=stock_item.warehouse,
-                    to_warehouse=Sklad.objects.get(name = request.user.userprofile.sklad),
+                    to_warehouse=Sklad.objects.get(slug=sklad),
                     material=material_mtr,
                     quantity=material_quantity,
                     description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при списании'
@@ -483,9 +489,9 @@ def credit_detail(request, credit_id):
 def zakaz_credit(request):
     if request.method == 'POST':
         team = Team.objects.get(pk=request.POST.get('team'))
-        if check_active_credit(request, team.pk):
-            messages.error(request, 'У вашей команды уже есть активный кредит. Пожалуйста, погасите его перед оформлением нового кредита.')
-            return redirect('bank:new_credit')
+        #if check_active_credit(request, team.pk):
+        #    messages.error(request, 'У вашей команды уже есть активный кредит. Пожалуйста, погасите его перед оформлением нового кредита.')
+        #    return redirect('bank:new_credit')
         balance = Balance.objects.get(team=team)
         if balance.money < 1000000:
             amount_val = 1000000

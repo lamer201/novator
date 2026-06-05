@@ -130,9 +130,9 @@ def shipment(request, pk):
         zakazy = Zakaz.objects.filter(team=zakaz.team)
         auto_team = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug='auto').aggregate(total=Sum('quantity'))['total'] or 0
         team_total_km = Stock.objects.filter(warehouse__team=zakaz.team, material__category__slug='trubi').aggregate(total=Sum('quantity'))['total'] or 0
-        if zakaz.total_eco_score > zakaz.team.eco_scores.score:
-            messages.error(request, 'Недостаточно очков экологии для перемещения.')
-            return redirect('mtr:index')
+        #if zakaz.total_eco_score > zakaz.team.eco_scores.score:
+            #messages.error(request, 'Недостаточно очков экологии для перемещения.')
+            #return redirect('mtr:index')
         if (15 * (auto_team +1)) / ((zakaz.total_items + team_total_km)) < 1:
             messages.error(request, f'Недостаточно автотранспорта. У команды {auto_team} ед. автотранспорта, {zakaz.total_items * 20} - всего км для перемещения, {team_total_km * 20} - всего км у команды.')
             return redirect('mtr:index')

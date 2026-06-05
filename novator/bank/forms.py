@@ -164,6 +164,7 @@ class KapremontForm(forms.Form):
     kap_rem_tr_du500 = forms.IntegerField(label='Капремонт Тройник Ду 500', required=False)
     kap_rem_tr_du1000 = forms.IntegerField(label='Капремонт Тройник Ду 1000', required=False)
     kap_rem_pr = forms.IntegerField(label='Капремонт Переходинк 1000/500', required=False)
+    kap_rem_tr_pr = forms.IntegerField(label='Капремонт Тройника Переходинка 1000/500', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='trubi')
     

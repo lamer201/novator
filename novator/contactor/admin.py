@@ -10,6 +10,7 @@ class EcoCompensationAdmin(admin.ModelAdmin):
 class EcoCompensationOperationAdmin(admin.ModelAdmin):
     list_display = ('zakaz', 'eco_compensation', 'description')
     search_fields = ('zakaz__id', )
+    list_filter = ('zakaz__team',)
     empty_value_display = '-пусто-'
 
 

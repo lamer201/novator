@@ -23,6 +23,7 @@ class SkladAdmin(admin.ModelAdmin):
 class StockAdmin(admin.ModelAdmin):
     list_display = ('pk', 'warehouse', 'material', 'quantity')
     search_fields = ('warehouse__name', 'material__material__name')
+    list_filter = ('warehouse',)
     empty_value_display = '-пусто-'
 
 

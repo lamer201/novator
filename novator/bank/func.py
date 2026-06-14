@@ -112,8 +112,9 @@ def make_zakaz_buildings(form):
     else:        profit = 0
     if test_balance(price, balance.money):
             payment=True
-    else:        payment=False
-            
+    else:
+        message = f'Недостаточно средств на балансе для оплаты заказа. Необходимо {price}, а на балансе {balance.money}.'
+        return JsonResponse({'error': message}, status=400)  
     # Create new order
     zakaz = Zakaz.objects.create(
         team=team,
@@ -274,12 +275,12 @@ def calculate_win_score(team):
     bonus_score = 0
     for grs in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs', zakaz__status__pk=5):
         grs_money += grs.calculate_profit
-        grs_potrebiteli += int(ItemProperty.objects.get(material=grs.material, property_name='potrebitel').property_value)
-    total_money = balance.money + grs_money
+        grs_potrebiteli += float(ItemProperty.objects.get(material=grs.material, property_name='potrebitel').property_value)
+    total_money = balance.money 
     if ZakazItem.objects.filter(zakaz__team=team, material__category__slug='premii').exists():
          for item in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='premii'):
-            bonus_score += int(ItemProperty.objects.get(material=item.material, property_name='winner_score').property_value)
+            bonus_score += float(ItemProperty.objects.get(material=item.material, property_name='winner_score').property_value)
 
-    total_points = (grs_potrebiteli * 0.001) + (total_money * 0.0000001) + (team.eco_scores.score * 0.1) + bonus_score
+    total_points = (grs_potrebiteli * 0.001) + (total_money * 0.000001) + (team.eco_scores.score * 0.1) + bonus_score
     return total_points
     

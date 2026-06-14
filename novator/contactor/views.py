@@ -22,7 +22,7 @@ def index(request):
 
 def team_detail(request, team_id):
     team = Team.objects.get(id=team_id)
-    zakazy = Zakaz.objects.filter(team=team, category__slug__in=['trubi','ks','grs'], category__pk__in=['3','5'])
+    zakazy = Zakaz.objects.filter(team=team, category__slug__in=['trubi','ks','grs'], status__pk__in=['3','5'])
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     stock = Stock.objects.filter(warehouse__team=team, material__category__slug='eco')
 

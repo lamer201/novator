@@ -172,18 +172,28 @@ def zakaz_edit(request, zakaz_id):
 
 @login_required
 def zakaz_add_material(request, zakaz_id):
+    """
+    Add a material to an existing zakaz (order)
+    """
     zakaz = get_object_or_404(Zakaz, pk=zakaz_id)
+    
+    # Check if request method is POST
     if request.method != 'POST':
         messages.error(request, 'Неверный метод запроса.')
         return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
 
+    # Get form data
     material_val = request.POST.get('material')
     qty_val = request.POST.get('quantity')
     koeff_val = request.POST.get('koeff', None)
-
+    
+    # Validate required fields
     if not material_val or not qty_val:
         messages.error(request, 'Материал и количество обязательны.')
-        return redirect('bank:zakaz_edit' if request.POST.get('next') == 'edit' else 'bank:zakaz_detail', zakaz_id=zakaz.pk)
+        next_page = 'bank:zakaz_edit' if request.POST.get('next') == 'edit' else 'bank:zakaz_detail'
+        return redirect(next_page, zakaz_id=zakaz.pk)
+    
+    # Validate quantity
     try:
         quantity = int(qty_val)
         if quantity <= 0:
@@ -191,12 +201,13 @@ def zakaz_add_material(request, zakaz_id):
     except (ValueError, TypeError):
         messages.error(request, 'Неверное количество.')
         return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
-
-    # find material by pk or slug
+    
+    # Find material by pk or slug
     material = None
     try:
         material = Material.objects.get(pk=int(material_val))
-    except Exception:
+    except (ValueError, TypeError):
+        # If pk is not a valid integer, try to find by slug
         try:
             material = Material.objects.get(slug=material_val)
         except Material.DoesNotExist:
@@ -206,11 +217,13 @@ def zakaz_add_material(request, zakaz_id):
         messages.error(request, 'Материал не найден.')
         return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
 
+    # Validate and process coefficient
     try:
         koeff = float(koeff_val) if koeff_val is not None else 1.0
     except (ValueError, TypeError):
         koeff = 1.0
 
+    # Calculate price and cost
     price = material.price * koeff
     cost = price * quantity
 
@@ -229,7 +242,7 @@ def zakaz_add_material(request, zakaz_id):
         balance.money -= cost
         balance.save()
 
-    # create item
+    # Create the zakaz item
     ZakazItem.objects.create(
         zakaz=zakaz,
         material=material,
@@ -634,3 +647,4 @@ def zapusk_edit(request):
         except (ValueError, TypeError):
             messages.error(request, 'Неверные значения коэффициента прибыли. Пожалуйста, введите корректные данные.')
     return redirect('bank:team_detail', team_id=zakaz_item.zakaz.team.pk)
+

@@ -1,4 +1,4 @@
-from .models import Zakaz, Team, ZakazItem, Material
+from .models import Zakaz, ZakazItem, Team, Material
 from django import forms
 from django.contrib.auth import get_user_model
 
@@ -9,8 +9,6 @@ def get_choices():
         choices.append((instance.pk, instance.name))
     return choices
 
-def get_choices_test(choices):
-    return choices
 
 def get_shtraf_choices():
     choices = []
@@ -66,7 +64,7 @@ class ZakazFormTrub(forms.Form):
     TDU1000PP = forms.IntegerField(label='Подводный переход ДУ 1000', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='trubi')
-      
+     
 
 
 class ZakazFormGRS(forms.Form):
@@ -168,3 +166,191 @@ class KapremontForm(forms.Form):
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='trubi')
     
+
+class ZakazFormTrubTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    TDU500 = forms.IntegerField(label='Труба Ду 500', required=False)
+    TDU1000 = forms.IntegerField(label='Труба Ду 1000', required=False)
+    UDU500 = forms.IntegerField(label='Угол Ду 500', required=False)
+    UDU1000 = forms.IntegerField(label='Угол Ду 1000', required=False)
+    TRDU500 = forms.IntegerField(label='Тройник Ду 500', required=False)
+    TRDU1000 = forms.IntegerField(label='Тройник Ду 1000', required=False)
+    TRP1000_500 = forms.IntegerField(label='Тройник переходной 1000/500', required=False)
+    PDU1000_500 = forms.IntegerField(label='Переходник 1000/500', required=False)
+    TDU500PP = forms.IntegerField(label='Подводный переход ДУ 500', required=False)
+    TDU1000PP = forms.IntegerField(label='Подводный переход ДУ 1000', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='trubi')
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+class ZakazFormBankTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    team_balance = forms.IntegerField(label='Узнать баланс', required=False)
+    otmena = forms.IntegerField(label='Отмена заказа', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='bank_operations')
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+class ZakazFormGRSTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    building = forms.ChoiceField(label='ГРС', choices=get_grs_choices(), widget=forms.Select(attrs={'id': 'grs-select'}) )
+    description = forms.CharField(label='Номер догвора',max_length=10)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='grs')
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+
+class ZakazFormKSTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    building = forms.ChoiceField(label='КС', choices=get_ks_choices(), widget=forms.Select(attrs={'id': 'ks-select'}) )
+    description = forms.CharField(label='Номер догвора',max_length=10)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='ks')
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+
+class ZakazFormBuildingsTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    building = forms.ChoiceField(label='Здание', choices=get_buildings_choices(), widget=forms.Select(attrs={'id': 'building-select'}) )
+    description = forms.CharField(label='Номер догвора',max_length=10)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='eco')
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+
+class ZakazFormAutoTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    auto = forms.IntegerField(label='Транспорт', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='auto')
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+
+class ZakazFormObuchenieTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    learn_les = forms.BooleanField(label='Мастер ЛЭС', required=False)
+    learn_grs = forms.BooleanField(label='Оператор ГРС', required=False)
+    learn_ks = forms.BooleanField(label='Инженер ГКС', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='obuchenie')
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+
+class ZakazFormShtrafTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    #shtraf = forms.ChoiceField(label='Штраф', required=True, choices=get_shtraf_choices())
+    shtraf_1 = forms.IntegerField(label='Штраф 1', required=False)
+    shtraf_2 = forms.IntegerField(label='Штраф 2', required=False)
+    shtraf_3 = forms.IntegerField(label='Штраф 3', required=False)
+    shtraf_4 = forms.IntegerField(label='Штраф 4', required=False)
+    shtraf_5 = forms.IntegerField(label='Штраф 5', required=False)
+    shtraf_6 = forms.IntegerField(label='Штраф 6', required=False)
+    shtraf_7 = forms.IntegerField(label='Штраф 7', required=False)
+    shtraf_8 = forms.IntegerField(label='Штраф 8', required=False)
+    shtraf_9 = forms.IntegerField(label='Штраф 9', required=False)
+    shtraf_10 = forms.IntegerField(label='Штраф 10', required=False)
+    shtraf_11 = forms.IntegerField(label='Штраф 11', required=False)
+    shtraf_12 = forms.IntegerField(label='Штраф 12', required=False)
+    shtraf_13 = forms.IntegerField(label='Штраф 13', required=False)
+    shtraf_14 = forms.IntegerField(label='Штраф 14', required=False)
+    shtraf_15 = forms.IntegerField(label='Штраф 15', required=False)
+    shtraf_16 = forms.IntegerField(label='Штраф 16', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='shtrafs')
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+
+class ZakazFormCreditTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    amount = forms.FloatField(label='Сумма кредита', required=True)
+    #year = forms.IntegerField(label='Год кредита', required=True)
+    percent = forms.FloatField(label='Процентная ставка', required=True)
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+
+class PremiaFormTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    amount = forms.FloatField(label='Сумма премии', required=True)
+    #year = forms.IntegerField(label='Год премии', required=True)
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+
+
+class KapremontFormTeam(forms.Form):
+    team = forms.CharField(widget=forms.HiddenInput(), initial='')
+    kap_rem = forms.IntegerField(label='Капремонт', required=True, initial=1, disabled=True)
+    TDU500 = forms.IntegerField(label='Труба Ду 500', required=False)
+    TDU1000 = forms.IntegerField(label='Труба Ду 1000', required=False)
+    UDU500 = forms.IntegerField(label='Угол Ду 500', required=False)
+    UDU1000 = forms.IntegerField(label='Угол Ду 1000', required=False)
+    TRDU500 = forms.IntegerField(label='Тройник Ду 500', required=False)
+    TRDU1000 = forms.IntegerField(label='Тройник Ду 1000', required=False)
+    TRP1000_500 = forms.IntegerField(label='Тройник переходной 1000/500', required=False)
+    PDU1000_500 = forms.IntegerField(label='Переходник 1000/500', required=False)
+    TDU500PP = forms.IntegerField(label='Подводный переход ДУ 500', required=False)
+    TDU1000PP = forms.IntegerField(label='Подводный переход ДУ 1000', required=False)
+    kap_rem_du500 = forms.IntegerField(label='Капремонт Ду 500', required=False)
+    kap_rem_du1000 = forms.IntegerField(label='Капремонт Ду 1000', required=False)
+    kap_rem_ugol_du500 = forms.IntegerField(label='Капремонт Угол Ду 500', required=False)
+    kap_rem_ugol_du1000 = forms.IntegerField(label='Капремонт Угол Ду 1000', required=False)
+    kap_rem_tr_du500 = forms.IntegerField(label='Капремонт Тройник Ду 500', required=False)
+    kap_rem_tr_du1000 = forms.IntegerField(label='Капремонт Тройник Ду 1000', required=False)
+    kap_rem_pr = forms.IntegerField(label='Капремонт Переходинк 1000/500', required=False)
+    kap_rem_tr_pr = forms.IntegerField(label='Капремонт Тройника Переходинка 1000/500', required=False)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='trubi')
+
+    def __init__(self, *args, **kwargs):
+        self.team_id = kwargs.pop('team_id', None)
+        super().__init__(*args, **kwargs)
+        self.initial['team'] = self.team_id
+        self.fields['team'].widget.attrs['id'] = 'team_select'

@@ -52,6 +52,63 @@ def create_zakaz(request):
     return render(request, 'bank/zakaz.html', {'form': form})
 
 @login_required
+def create_zakaz_team(request, team_id):
+    if request.GET.get('category') == 'truba':
+        type_form = ZakazFormTrubTeam
+    elif request.GET.get('category') == 'auto':
+        type_form = ZakazFormAutoTeam
+    elif request.GET.get('category') == 'obuchenie':
+        type_form = ZakazFormObuchenieTeam
+    elif request.GET.get('category') == 'shtraf':
+        type_form = ZakazFormShtrafTeam
+    elif request.GET.get('category') == 'kapremont':
+        type_form = KapremontFormTeam
+    elif request.GET.get('category') == 'bank':
+        type_form = ZakazFormBankTeam
+    else:
+        messages.error(request, 'Неверная категория заказа.')
+        return redirect('bank:team_detail', team_id = team_id)
+    if request.method == 'POST':
+        form = type_form(request.POST)
+        if form.is_valid():
+            team = Team.objects.get(pk=form.cleaned_data['team'])
+            if (get_sum(form) > Balance.objects.get(team=team).money):
+                messages.error(request, 'Недостаточно средств на балансе для создания заказа.')
+                return redirect('bank:team_detail', team_id = team_id)
+            return make_zakaz(form)
+    else:
+        form = type_form(team_id = team_id)
+        team_balance = Balance.objects.get(team__pk=team_id)
+    
+    return render(request, 'bank/zakaz.html', {'form': form,
+                                               'balance': team_balance})
+
+
+@login_required
+def create_zakaz_buildings_team(request, team_id):
+    if request.GET.get('category') == 'buildings':
+        type_form = ZakazFormBuildingsTeam
+    elif request.GET.get('category') == 'grs':
+        type_form = ZakazFormGRSTeam
+    elif request.GET.get('category') == 'ks':
+        type_form = ZakazFormKSTeam
+    else:
+        messages.error(request, 'Неверная категория заказа.')
+        return redirect('bank:team_detail', team_id = team_id)
+    if request.method == 'POST':
+        form = type_form(request.POST)
+        if form.is_valid():
+            if (get_sum(form) > Balance.objects.get(team__pk=form.cleaned_data['team']).money):
+                messages.error(request, 'Недостаточно средств на балансе для создания заказа.')
+                return redirect('bank:team_detail', team_id = team_id)
+            return make_zakaz_buildings(form)
+    else:
+        form = type_form(team_id = team_id)
+        team_balance = Balance.objects.get(team__pk=team_id)
+    
+    return render(request, 'bank/zakaz.html', {'form': form, 'balance': team_balance})
+
+@login_required
 def zakaz_check(request, zakaz_id):
     zakaz = Zakaz.objects.get(pk=zakaz_id)
     zakaz.status = Status.objects.get(pk=2)

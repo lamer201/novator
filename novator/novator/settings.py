@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django_bootstrap5',
     'main',
     'mtr',
     'bank',
@@ -75,13 +76,13 @@ WSGI_APPLICATION = 'novator.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-} 
-"""DATABASES = {
+} """
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'novatory',     # Название базы данных
@@ -90,7 +91,7 @@ DATABASES = {
         'HOST': 'localhost',                 # Адрес сервера БД
         'PORT': '5432',                      # Порт БД (стандартный для PostgreSQL)
     }
-}  """
+}  
 
 
 # Password validation
@@ -187,3 +188,10 @@ CONSTANCE_CONFIG = {
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/' # Куда попадает пользователь после выхода
 LOGIN_URL = '/accounts/login/'  # URL страницы входа (если название другое, укажите здесь)[reference:5]
+
+BOOTSTRAP5 = {
+    # Указываем путь к локальному CSS-файлу Bootstrap
+    "css_url": "/static/css/bootstrap.min.css",
+    # Указываем путь к локальному JS-файлу Bootstrap
+    "javascript_url": "/static/js/bootstrap.bundle.min.js",
+}

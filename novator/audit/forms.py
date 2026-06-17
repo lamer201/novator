@@ -6,7 +6,7 @@ user = get_user_model()
 
 def get_choices():
     choices = []
-    for instance in Team.objects.filter(status=True):
+    for instance in Team.objects.all():
         choices.append((instance.pk, instance.name))
     return choices
 

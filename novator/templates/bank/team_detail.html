@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Team Detail{% endblock %}
+{% block title %}Страница команды{% endblock %}
 {% load humanize %}
 {% load static %}
 {% block content %}
@@ -14,7 +14,19 @@
       {% endfor %}
     </div>
   {% endif %}
-
+<div class="container my-4">
+<a href="{% url 'bank:create_zakaz_team' team.pk %}?category=truba" class="btn btn-outline-secondary">Трубы</a>
+<a href="{% url 'bank:create_zakaz_buildings_team' team.pk %}?category=grs" class="btn btn-outline-secondary">ГРС</a>
+<a href="{% url 'bank:create_zakaz_buildings_team' team.pk %}?category=ks" class="btn btn-outline-secondary">КС</a>
+<a href="{% url 'bank:create_zakaz_team' team.pk %}?category=auto" class="btn btn-outline-secondary">Автотранспорт</a>
+<a href="{% url 'bank:create_zakaz_team' team.pk %}?category=obuchenie" class="btn btn-outline-secondary">Обучение</a>
+<a href="{% url 'bank:create_zakaz_buildings_team' team.pk %}?category=buildings" class="btn btn-outline-secondary">Экология</a>
+<a href="{% url 'bank:create_zakaz_team' team.pk %}?category=shtraf" class="btn btn-outline-secondary">Штрафы</a>
+<a href="{% url 'bank:create_zakaz_team' team.pk %}?category=bank" class="btn btn-outline-secondary">Банковские операции</a>
+<a href="{% url 'bank:new_credit'%}?team={{team.pk}}" class="btn btn-outline-info">Новый кредит</a>
+<a href="{% url 'bank:new_premia'%}?team={{team.pk}}" class="btn btn-outline-warning">Начислить премию</a>
+<a href="{% url 'bank:create_zakaz_team' team.pk %}?category=kapremont" class="btn btn-outline-success">Капремонт</a>
+</div>
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="m-0">{{ team.name }}</h2>

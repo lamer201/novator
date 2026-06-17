@@ -12,11 +12,6 @@
 </head>
 <body>
     <header>
-    <div class="container my-4">
-  <!-- Centered Title -->
-    <h1 class="text-center">Добро пожаловать в Novator</h1>
-    <p class="text-center text-muted">Это система для управления игрой.</p>
-</div>
 {% if user.is_authenticated %}
   {% block nav %}       
         <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-toggle">
@@ -26,28 +21,38 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
+      {% url 'bank:bank_list' as bank_url %}
+      {% url 'mtr:index' as mtr_url %}
+      {% url 'contactor:index' as contactor_url %}
+      {% url 'learning:index' as learning_url %}
+      {% url 'audit:index' as audit_url %}
       <ul class="navbar-nav mx-auto">
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'bank:bank_list' %}">Банк</a>
+          <a class="nav-link {% if request.resolver_match.namespace == 'bank' %}active text-primary fw-bold{% endif %}" {% if request.resolver_match.namespace == 'bank' %}aria-current="page"{% endif %} href="{{ bank_url }}">Банк</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'mtr:index' %}">Снабженец</a>
+          <a class="nav-link {% if request.resolver_match.namespace == 'mtr' %}active text-primary fw-bold{% endif %}" {% if request.resolver_match.namespace == 'mtr' %}aria-current="page"{% endif %} href="{{ mtr_url }}">Снабженец</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'contactor:index' %}">Подрядчик</a>
+          <a class="nav-link {% if request.resolver_match.namespace == 'contactor' %}active text-primary fw-bold{% endif %}" {% if request.resolver_match.namespace == 'contactor' %}aria-current="page"{% endif %} href="{{ contactor_url }}">Подрядчик</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'learning:index' %}">Обучение</a>
+          <a class="nav-link {% if request.resolver_match.namespace == 'learning' %}active text-primary fw-bold{% endif %}" {% if request.resolver_match.namespace == 'learning' %}aria-current="page"{% endif %} href="{{ learning_url }}">Обучение</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'audit:index' %}">Аудитор</a>
+          <a class="nav-link {% if request.resolver_match.namespace == 'audit' %}active text-primary fw-bold{% endif %}" {% if request.resolver_match.namespace == 'audit' %}aria-current="page"{% endif %} href="{{ audit_url }}">Аудитор</a>
         </li>
       </ul>
-      <form method="post" action="{% url 'logout' %}" class="d-flex ms-auto">
-        {% csrf_token %}
-        <p>{{ user.username }}</p>
-        <button type="submit" class="btn btn-outline-danger btn-sm">Выйти</button>
-      </form>
+      <div class="d-flex align-items-center ms-auto gap-3">
+        <div class="navbar-text text-end">
+          <span class="d-block text-muted small">Привет,</span>
+          <strong>{{ user.get_full_name|default:user.username|title }}</strong>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-danger btn-sm">Выйти</button>
+        </form>
+      </div>
     </div>
   </div>
 </nav>

@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 from django.db import transaction
 from bank.models import Balance, Zakaz, ZakazItem
 from main.models import Status, Team, ItemProperty
-from bank.func import give_money, calculate_win_score
+from bank.func import give_money, calculate_win_score, end_game
 from mtr.models import Stock, Sklad, Shipment
 from django.db.models import Sum
 from .models import Team
@@ -44,6 +44,14 @@ def next_year(request):
         for team in Team.objects.filter(status=True):
             give_money(team)
     return render(request, 'main/next_year.html', {'year': config.YEAR})
+
+@login_required
+@transaction.atomic
+def end_game_func(request):
+    if request.method == 'POST':
+        for team in Team.objects.filter(status=True):
+            end_game(team)
+    return render(request, 'main/end_game.html')
 
 
 def control(request):

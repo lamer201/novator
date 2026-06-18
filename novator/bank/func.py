@@ -1,12 +1,13 @@
 from django.shortcuts import get_list_or_404, get_object_or_404, render, redirect
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from .models import Balance, Credit, Team, Zakaz, Material, ZakazItem, Status, HistoryOperation
+from .models import Balance, Credit, Team, Zakaz, Material, ZakazItem, Status, HistoryOperation, CreditPayment
 from main.models import Category, ItemProperty
 from mtr.models import Stock
 from main.models import ItemProperty
 from constance import config
 from django.db import transaction
+from django.db.models import Q
 
 
 def get_sum(form):
@@ -109,20 +110,24 @@ def make_zakaz_buildings(form):
     price = building.price * float(form.cleaned_data['koeff'])
     if building.category.slug == 'grs':
         profit = ItemProperty.objects.get(material=building, property_name='cost').property_value
-    else:        profit = 0
+        nomer_dogovora = Zakaz.objects.filter(category__slug='grs',team=team).filter(~Q(status__name='Отменён')).count() +1
+    else:        
+         profit = 0
+         nomer_dogovora=''       
     if test_balance(price, balance.money):
             payment=True
     else:
         message = f'Недостаточно средств на балансе для оплаты заказа. Необходимо {price}, а на балансе {balance.money}.'
         return JsonResponse({'error': message}, status=400)  
     # Create new order
+    
     zakaz = Zakaz.objects.create(
         team=team,
         year = config.YEAR,  # Use the value from Constance
         month = 0,
         payment=payment,
         status=Status.objects.get(name='Создан'),
-        description=form.cleaned_data['description'],
+        description=nomer_dogovora,
         category=Category.objects.get(slug=form.cleaned_data['category'])
     )
     zakaz.save()
@@ -284,3 +289,40 @@ def calculate_win_score(team):
     total_points = (grs_potrebiteli * 0.001) + (total_money * 0.000001) + (team.eco_scores.score * 0.1) + bonus_score
     return total_points
     
+
+def end_game(team):
+    balance = Balance.objects.get(team=team)
+    for grs in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs'):
+        balance.money += grs.calculate_profit
+        history = HistoryOperation.objects.create(
+        team=team,
+        operation_type='credit',
+        amount=grs.calculate_profit,
+        balance_before=balance.money - grs.calculate_profit, 
+        balance_after=balance.money,
+        description= f'Прибыль от грс {grs.material.name}'
+    )
+    history.save()
+    if Credit.objects.filter(team=team, status='active').exists():
+         credits = Credit.objects.filter(team=team, status='active')
+         for credit in credits:
+            payment = CreditPayment.objects.create(
+              credit=credit,
+              amount=credit.remains,
+              year=config.YEAR
+            )
+            payment.save()
+            balance.money-=credit.remains
+            credit.status='paid'
+            history = HistoryOperation.objects.create(
+            team=team,
+            operation_type='debit',
+            amount=credit.remains,
+            balance_before=balance.money + credit.remains, 
+            balance_after=balance.money,
+            description= f'Выплата кредита {credit.pk}'
+            )
+            credit.save()
+            history.save()
+    balance.save()
+    return JsonResponse({'text': balance.money})

@@ -70,7 +70,7 @@ class ZakazFormTrub(forms.Form):
 class ZakazFormGRS(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     building = forms.ChoiceField(label='ГРС', choices=get_grs_choices(), widget=forms.Select(attrs={'id': 'grs-select'}) )
-    description = forms.CharField(label='Номер догвора',max_length=10)
+    #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='grs')
 
@@ -78,7 +78,7 @@ class ZakazFormGRS(forms.Form):
 class ZakazFormKS(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     building = forms.ChoiceField(label='КС', choices=get_ks_choices(), widget=forms.Select(attrs={'id': 'ks-select'}) )
-    description = forms.CharField(label='Номер догвора',max_length=10)
+    #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='ks')
 
@@ -86,7 +86,7 @@ class ZakazFormKS(forms.Form):
 class ZakazFormBuildings(forms.Form):
     team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
     building = forms.ChoiceField(label='Здание', choices=get_buildings_choices(), widget=forms.Select(attrs={'id': 'building-select'}) )
-    description = forms.CharField(label='Номер догвора',max_length=10)
+    #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='eco')
 
@@ -204,7 +204,7 @@ class ZakazFormBankTeam(forms.Form):
 class ZakazFormGRSTeam(forms.Form):
     team = forms.CharField(widget=forms.HiddenInput(), initial='')
     building = forms.ChoiceField(label='ГРС', choices=get_grs_choices(), widget=forms.Select(attrs={'id': 'grs-select'}) )
-    description = forms.CharField(label='Номер догвора',max_length=10)
+    #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='grs')
 
@@ -218,7 +218,7 @@ class ZakazFormGRSTeam(forms.Form):
 class ZakazFormKSTeam(forms.Form):
     team = forms.CharField(widget=forms.HiddenInput(), initial='')
     building = forms.ChoiceField(label='КС', choices=get_ks_choices(), widget=forms.Select(attrs={'id': 'ks-select'}) )
-    description = forms.CharField(label='Номер догвора',max_length=10)
+    #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='ks')
 
@@ -232,7 +232,7 @@ class ZakazFormKSTeam(forms.Form):
 class ZakazFormBuildingsTeam(forms.Form):
     team = forms.CharField(widget=forms.HiddenInput(), initial='')
     building = forms.ChoiceField(label='Здание', choices=get_buildings_choices(), widget=forms.Select(attrs={'id': 'building-select'}) )
-    description = forms.CharField(label='Номер догвора',max_length=10)
+    #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='eco')
 
@@ -262,7 +262,7 @@ class ZakazFormObuchenieTeam(forms.Form):
     learn_grs = forms.BooleanField(label='Оператор ГРС', required=False)
     learn_ks = forms.BooleanField(label='Инженер ГКС', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
-    category = forms.CharField(widget=forms.HiddenInput(), initial='obuchenie')
+    category = forms.CharField(widget=forms.HiddenInput(), initial='learning')
 
     def __init__(self, *args, **kwargs):
         self.team_id = kwargs.pop('team_id', None)

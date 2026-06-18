@@ -27,6 +27,18 @@ def check_obuchenie(zakaz):
         return True
     else:
         return False
+    
+def check_auto(zakaz):
+    zakazy = Zakaz.objects.filter(team=zakaz.team, category__slug='auto')
+    auto_team = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug='auto', zakaz__status__name='Завершен').aggregate(total=Sum('quantity'))['total'] or 0
+    team_total_km = Stock.objects.filter(warehouse__team=zakaz.team, material__category__slug='trubi').aggregate(total=Sum('quantity'))['total'] or 0
+        #if zakaz.total_eco_score > zakaz.team.eco_scores.score:
+            #messages.error(request, 'Недостаточно очков экологии для перемещения.')
+            #return redirect('mtr:index')
+    if (15 * (auto_team +1)) / ((zakaz.total_items + team_total_km)) < 1:
+        return False
+    return True
+
 
 @login_required
 def index(request):
@@ -34,15 +46,23 @@ def index(request):
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug__in=['trubi', 'ks', 'grs'])
     sklad = Sklad.objects.filter(is_active=True, name = request.user.userprofile.sklad)
     stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'ks'])
-    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True)).order_by('pk')
     grs_items = Stock.objects.filter(warehouse__team__in=teams, material__category__slug='grs').count()
     teams_items = []
     teams_auto = []
+    team_stock =[]
+    for zakaz in zakazy:
+        obuchenie = check_obuchenie(zakaz)
+        if zakaz.category.slug == 'trubi':
+            transport = check_auto(zakaz)
+        else:
+            transport = True
+        team_stock.append({'zakaz': zakaz, 'obuchenie': obuchenie, 'transport': transport})
 
     # calculate total quantity of items in each team's sklad(s)
     for team in teams:
         team_sklads = Sklad.objects.filter(team=team, is_active=True)
-        items_auto = ZakazItem.objects.filter(zakaz__team=team, material__category__slug__in=['auto']).aggregate(total=Sum('quantity'))['total'] or 0
+        items_auto = ZakazItem.objects.filter(zakaz__team=team, material__category__slug__in=['auto'], zakaz__status__name='Завершен').aggregate(total=Sum('quantity'))['total'] or 0
         teams_auto.append({'team': team, 'auto_count': items_auto})
         total = Stock.objects.filter(warehouse__in=team_sklads, material__category__slug__in=['trubi']).aggregate(total=Sum('quantity'))['total'] or 0
         teams_items.append({'team': team, 'items_count': total * 20})
@@ -52,6 +72,7 @@ def index(request):
         materials.extend(Stock.objects.filter(warehouse=items))
     context = {
         'zakazy': zakazy,
+        'team_stock': team_stock,
         'zakazy_items': zakazy_items,
         'sklad': stock,
         'teams': teams,

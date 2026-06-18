@@ -62,9 +62,17 @@
                 <a href="{% url 'mtr:extradition_detail' zakaz.id %}" class="btn btn-sm btn-primary">
                   <i class="fas fa-eye"></i> Просмотр
                 </a>
-                <a href="{% url 'mtr:shipment' zakaz.id %}" class="btn btn-sm btn-success">
-                  <i class="fas fa-plus"></i> Выдать
-                </a>
+                {% for stock in team_stock %}
+                {% if stock.zakaz.id == zakaz.id %}
+                {% if stock.obuchenie == False %}
+                Отсутвует обучение
+                {% elif stock.transport == False %}
+                Не хватает транспорта
+                {% else %}
+                <a href="{% url 'mtr:shipment' zakaz.id %}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> Выдать</a>
+                {% endif %}
+                {% endif %}
+                {% endfor %}
               </div>
               </div>
             </td>

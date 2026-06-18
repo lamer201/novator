@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Конец игры{% endblock %}
+
+{% block content %}
+
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Конец игры</h2>
+    <p class="d-flex flex-row gap-2">
+      После нажатия кнопки "ЗАкончить игру" произойдет обновление данных для всех команд, 
+      включая начисление новых средств за выполнение задач по запуску ГРС, 
+      а так же списание всех не закрытых кредитов. 
+      Убедитесь, что все данные сохранены перед выполнением этого действия.
+    <div>
+    </div>
+  </div>
+
+    <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
+<form method="post" action="{% url 'main:end_game' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-primary d-inline-flex align-items-center" onclick="return confirm('Вы уверены, что хотите перевести год? Это действие нельзя будет отменить.')">
+      Закончить игру!
+    </button>
+  </form>
+  <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" onclick="window.location.href='{% url 'main:control' %}'">
+      Вернуться на страницу контроля</button>
+    </div>
+
+</div>
+
+{% endblock %}

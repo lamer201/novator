@@ -88,7 +88,8 @@
                 {% endif %}
             </div>
             <div class="mt-4">
-                <a href="{% url 'bank:zakaz_list' %}" class="btn btn-secondary">Назад к списку</a>
+                <a href="{% url 'bank:team_detail' zakaz.team.pk %}" class="btn btn-success">Вернуться в команду</a>
+                <a href="{% url 'bank:zakaz_list' %}" class="btn btn-secondary">К списку заказов</a>
             </div>
         </div>
     </div>

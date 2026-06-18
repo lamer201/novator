@@ -98,15 +98,13 @@ def create_zakaz_buildings_team(request, team_id):
     if request.method == 'POST':
         form = type_form(request.POST)
         if form.is_valid():
-            if (get_sum(form) > Balance.objects.get(team__pk=form.cleaned_data['team']).money):
-                messages.error(request, 'Недостаточно средств на балансе для создания заказа.')
-                return redirect('bank:team_detail', team_id = team_id)
             return make_zakaz_buildings(form)
     else:
         form = type_form(team_id = team_id)
         team_balance = Balance.objects.get(team__pk=team_id)
     
-    return render(request, 'bank/zakaz.html', {'form': form, 'balance': team_balance})
+    return render(request, 'bank/zakaz.html', {'form': form, 
+                                               'balance': team_balance})
 
 @login_required
 def zakaz_check(request, zakaz_id):
@@ -443,7 +441,7 @@ def zakaz_detail(request, zakaz_id):
 
 @login_required
 def bank_list(request):
-    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True)).order_by('pk')
     
     list_teams = {}
     for team in teams:

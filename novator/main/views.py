@@ -43,7 +43,8 @@ def next_year(request):
         config.YEAR = request.POST.get('year', config.YEAR)
         for team in Team.objects.filter(status=True):
             give_money(team)
-    return render(request, 'main/next_year.html', {'year': config.YEAR})
+    return render(request, 'main/next_year.html', {'year': config.YEAR,
+                                                   'bonus': config.MONEY_PER_YEAR })
 
 @login_required
 @transaction.atomic

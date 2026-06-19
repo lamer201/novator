@@ -36,6 +36,7 @@ class KoeffAdmin(admin.ModelAdmin):
 
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('pk', 'user', 'role', 'sklad')
+    filter_horizontal = ('teams',) 
     search_fields = ('user__username', 'role')
     empty_value_display = '-пусто-'
 

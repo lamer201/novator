@@ -40,14 +40,14 @@ def create_zakaz(request):
         messages.error(request, 'Неверная категория заказа.')
         return redirect('bank:bank_list')
     if request.method == 'POST':
-        form = type_form(request.POST)
+        form = type_form(request.POST, user=request.user)
         if form.is_valid():
             if (get_sum(form) > Balance.objects.get(team=form.cleaned_data['team']).money):
                 messages.error(request, 'Недостаточно средств на балансе для создания заказа.')
                 return redirect('bank:bank_list')
             return make_zakaz(form)
     else:
-        form = type_form()
+        form = type_form(user=request.user)
     
     return render(request, 'bank/zakaz.html', {'form': form})
 
@@ -125,11 +125,11 @@ def create_zakaz_buildings(request):
         messages.error(request, 'Неверная категория заказа.')
         return redirect('bank:bank_list')
     if request.method == 'POST':
-        form = type_form(request.POST)
+        form = type_form(request.POST, user=request.user)
         if form.is_valid():
             return make_zakaz_buildings(form)
     else:
-        form = type_form()
+        form = type_form(user=request.user)
     
     return render(request, 'bank/zakaz.html', {'form': form})
 
@@ -137,14 +137,29 @@ def create_zakaz_buildings(request):
 @login_required
 def create_zakaz_obuchenie(request):
     if request.method == 'POST':
-        form = ZakazFormObuchenie(request.POST)
+        form = ZakazFormObuchenie(request.POST, user=request.user)
         if form.is_valid():
             if form.cleaned_data['learn_les'] == False and form.cleaned_data['learn_grs'] == False and form.cleaned_data['learn_ks'] == False:
                 messages.error(request, 'Выберите хотя бы один вид обучения.')
                 return redirect('bank:bank_list')
             return make_zakaz_obuchenie(form)
     else:
-        form = ZakazFormObuchenie()
+        form = ZakazFormObuchenie(user=request.user)
+    
+    return render(request, 'bank/zakaz.html', {'form': form})
+
+
+@login_required
+def create_zakaz_obuchenie_team(request, team_id):
+    if request.method == 'POST':
+        form = ZakazFormObuchenieTeam(request.POST)
+        if form.is_valid():
+            if form.cleaned_data['learn_les'] == False and form.cleaned_data['learn_grs'] == False and form.cleaned_data['learn_ks'] == False:
+                messages.error(request, 'Выберите хотя бы один вид обучения.')
+                return redirect('bank:team_detail', team_id = team_id)
+            return make_zakaz_obuchenie(form)
+    else:
+        form = ZakazFormObuchenieTeam(team_id = team_id)
     
     return render(request, 'bank/zakaz.html', {'form': form})
 
@@ -429,7 +444,7 @@ def zakaz_list(request):
         zakazy = Zakaz.objects.filter(team=request.GET.get('team')).order_by('-id')
         zakaz_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     else:
-        zakazy = Zakaz.objects.all().order_by('-id')
+        zakazy = Zakaz.objects.filter(team__name__in=request.user.userprofile.teams.values_list('name', flat=True)).order_by('-id')
         zakaz_items = ZakazItem.objects.all()
     return render(request, 'bank/zakaz_list.html', {'zakazy': zakazy, 'zakaz_items': zakaz_items})
 
@@ -599,7 +614,7 @@ def zakaz_credit(request):
         history.save()
         messages.success(request, f'Кредит на сумму {amount} создан для команды "{team.name}".')
         return redirect('bank:credit_detail', credit_id=credit.pk)
-    form = ZakazFormCredit()
+    form = ZakazFormCredit(user=request.user)
     return render(request, 'bank/zakaz_credit.html', {'form': form})
 
 @login_required
@@ -688,7 +703,7 @@ def new_premia(request):
         premia.save()
         messages.success(request, f'Премия в размере {amount} добавлена на баланс команды "{team.name}".')
         return redirect('bank:new_premia')
-    form = PremiaForm()
+    form = PremiaForm(user=request.user)
     teams = Team.objects.filter(status=True)
     premii = Premia.objects.all()
     return render(request, 'bank/new_premia.html', {'form': form, 'teams': teams, 'premii': premii})

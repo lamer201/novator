@@ -301,8 +301,8 @@ def end_game(team):
         balance_before=balance.money - grs.calculate_profit, 
         balance_after=balance.money,
         description= f'Прибыль от грс {grs.material.name}'
-    )
-    history.save()
+        )
+        history.save()
     if Credit.objects.filter(team=team, status='active').exists():
          credits = Credit.objects.filter(team=team, status='active')
          for credit in credits:

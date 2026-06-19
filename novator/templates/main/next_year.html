@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Смена года{% endblock %}
 
@@ -8,15 +9,17 @@
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="mb-0">Смена года</h2>
-    <phone2numeric class="d-flex flex-row gap-2">
+    <p class="d-flex flex-row gap-2">
       После нажатия кнопки "Перевести год" произойдет обновление данных для всех команд, 
       включая начисление новых средств за выполнение задач по запуску ГРС, 
       а так же ежегодный бонус 3 000 000 Р. 
-      Убедитесь, что все данные сохранены перед выполнением этого действия.
+      Убедитесь, что все данные сохранены перед выполнением этого действия.</p>
     <div>
     </div>
   </div>
-
+    <div class="container my-4">
+    <h3>Сейчас бонус составляет: {{ bonus|floatformat:0|intcomma }} </h3>
+    </div>
     <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
 <form method="post" action="{% url 'main:next_year' %}">
     {% csrf_token %}

@@ -14,6 +14,7 @@ urlpatterns = [
     path('team/<int:team_id>/', views.team_detail, name='team_detail'),
     path('team/<int:team_id>/create_zakaz', views.create_zakaz_team, name='create_zakaz_team'),
     path('team/<int:team_id>/create_zakaz_buildings', views.create_zakaz_buildings_team, name='create_zakaz_buildings_team'),
+    path('team/<int:team_id>/create_zakaz_obuchenie', views.create_zakaz_obuchenie_team, name='create_zakaz_obuchenie_team'),
     path('<int:zakaz_id>/edit', views.zakaz_edit, name='zakaz_edit'),
     path('get-balance/<int:team_id>/', views.check_balance, name='get_balance'),
     path('zakaz/<int:zakaz_id>/oplata/', views.zakaz_oplata, name='zakaz_oplata'),

@@ -3,11 +3,19 @@ from django import forms
 from django.contrib.auth import get_user_model
 
 
-def get_choices():
+def get_choices(user=None):
     choices = []
-    for instance in Team.objects.filter(status=True):
+    for instance in Team.objects.filter(status=True, name__in=user.userprofile.teams.values_list('name', flat=True)).order_by('pk'):
         choices.append((instance.pk, instance.name))
     return choices
+
+
+class UserTeamFormMixin:
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self.fields['team'].choices = get_choices(self.user)
+        self.fields['team'].widget.attrs['id'] = 'team-select'
 
 
 def get_shtraf_choices():
@@ -41,8 +49,8 @@ KOEFF_CHOICES = (
     (3.0, 'Наценка 200%'),
 )
 
-class ZakazFormBank(forms.Form):
-    team = forms.ChoiceField(label='Команда',choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class ZakazFormBank(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     team_balance = forms.IntegerField(label='Узнать баланс', required=False)
     otmena = forms.IntegerField(label='Отмена заказа', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
@@ -50,8 +58,8 @@ class ZakazFormBank(forms.Form):
 
 
 
-class ZakazFormTrub(forms.Form):
-    team = forms.ChoiceField(label='Команда',choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class ZakazFormTrub(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     TDU500 = forms.IntegerField(label='Труба Ду 500', required=False)
     TDU1000 = forms.IntegerField(label='Труба Ду 1000', required=False)
     UDU500 = forms.IntegerField(label='Угол Ду 500', required=False)
@@ -64,41 +72,45 @@ class ZakazFormTrub(forms.Form):
     TDU1000PP = forms.IntegerField(label='Подводный переход ДУ 1000', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='trubi')
-     
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['team'].widget.attrs['id'] = 'team_select'
+    
 
 
-class ZakazFormGRS(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class ZakazFormGRS(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     building = forms.ChoiceField(label='ГРС', choices=get_grs_choices(), widget=forms.Select(attrs={'id': 'grs-select'}) )
     #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='grs')
 
 
-class ZakazFormKS(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class ZakazFormKS(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     building = forms.ChoiceField(label='КС', choices=get_ks_choices(), widget=forms.Select(attrs={'id': 'ks-select'}) )
     #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='ks')
 
 
-class ZakazFormBuildings(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class ZakazFormBuildings(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     building = forms.ChoiceField(label='Здание', choices=get_buildings_choices(), widget=forms.Select(attrs={'id': 'building-select'}) )
     #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='eco')
 
 
-class ZakazFormAuto(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class ZakazFormAuto(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     auto = forms.IntegerField(label='Транспорт', required=False)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='auto')
 
-class ZakazFormObuchenie(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class ZakazFormObuchenie(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     learn_les = forms.BooleanField(label='Мастер ЛЭС', required=False)
     learn_grs = forms.BooleanField(label='Оператор ГРС', required=False)
     learn_ks = forms.BooleanField(label='Инженер ГКС', required=False)
@@ -106,8 +118,8 @@ class ZakazFormObuchenie(forms.Form):
     category = forms.CharField(widget=forms.HiddenInput(), initial='obuchenie')
 
 
-class ZakazFormShtraf(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class ZakazFormShtraf(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     #shtraf = forms.ChoiceField(label='Штраф', required=True, choices=get_shtraf_choices())
     shtraf_1 = forms.IntegerField(label='Штраф 1', required=False)
     shtraf_2 = forms.IntegerField(label='Штраф 2', required=False)
@@ -129,21 +141,21 @@ class ZakazFormShtraf(forms.Form):
     category = forms.CharField(widget=forms.HiddenInput(), initial='shtrafs')
 
 
-class ZakazFormCredit(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class ZakazFormCredit(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     amount = forms.FloatField(label='Сумма кредита', required=True)
     #year = forms.IntegerField(label='Год кредита', required=True)
     percent = forms.FloatField(label='Процентная ставка', required=True)
 
 
-class PremiaForm(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class PremiaForm(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     amount = forms.FloatField(label='Сумма премии', required=True)
     #year = forms.IntegerField(label='Год премии', required=True)
 
 
-class KapremontForm(forms.Form):
-    team = forms.ChoiceField(label='Команда', choices=get_choices(), widget=forms.Select(attrs={'id': 'team-select'}))
+class KapremontForm(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     kap_rem = forms.IntegerField(label='Капремонт', required=True, initial=1)
     TDU500 = forms.IntegerField(label='Труба Ду 500', required=False)
     TDU1000 = forms.IntegerField(label='Труба Ду 1000', required=False)

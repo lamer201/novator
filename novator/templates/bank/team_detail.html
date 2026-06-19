@@ -19,7 +19,7 @@
 <a href="{% url 'bank:create_zakaz_buildings_team' team.pk %}?category=grs" class="btn btn-outline-secondary">ГРС</a>
 <a href="{% url 'bank:create_zakaz_buildings_team' team.pk %}?category=ks" class="btn btn-outline-secondary">КС</a>
 <a href="{% url 'bank:create_zakaz_team' team.pk %}?category=auto" class="btn btn-outline-secondary">Автотранспорт</a>
-<a href="{% url 'bank:create_zakaz_team' team.pk %}?category=obuchenie" class="btn btn-outline-secondary">Обучение</a>
+<a href="{% url 'bank:create_zakaz_obuchenie_team' team.pk %}?category=obuchenie" class="btn btn-outline-secondary">Обучение</a>
 <a href="{% url 'bank:create_zakaz_buildings_team' team.pk %}?category=buildings" class="btn btn-outline-secondary">Экология</a>
 <a href="{% url 'bank:create_zakaz_team' team.pk %}?category=shtraf" class="btn btn-outline-secondary">Штрафы</a>
 <a href="{% url 'bank:create_zakaz_team' team.pk %}?category=bank" class="btn btn-outline-secondary">Банковские операции</a>
@@ -89,7 +89,10 @@
               <a href="{% url 'bank:zakaz_kapremont' team.pk %}" class="btn btn-outline-primary">Списание материалов</a>
               <a href="{% url 'bank:bank_list' %}" class="btn btn-link">К списку команд</a>
             </div>
-            <div class="mt-4">
+        </div>
+      </div>
+    </div>
+    <div class="mt-4">
               <h5>Объекты</h5>
               {% if objects %}
                 <div class="table-responsive">
@@ -144,9 +147,6 @@
                 <p class="text-muted">Нет объектов</p>
               {% endif %}
             </div>
-        </div>
-      </div>
-    </div>
     <div class="mt-4">
       {% if zakazy %}
         <h5>Заказы</h5>

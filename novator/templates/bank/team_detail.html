@@ -34,7 +34,7 @@
   </div>
 
   <main class="container py-4">
-    <div class="row justify-content-center">
+    <div class="row">
       <div class="col-md-8">
         <div class="card shadow-sm">
           <div class="card-body">
@@ -89,9 +89,38 @@
               <a href="{% url 'bank:zakaz_kapremont' team.pk %}" class="btn btn-outline-primary">Списание материалов</a>
               <a href="{% url 'bank:bank_list' %}" class="btn btn-link">К списку команд</a>
             </div>
+          </div>
         </div>
       </div>
-    </div>
+      <div class="col">
+        <h5>Кредиты</h5>
+        {% if credits %}
+          <div class="table-responsive">
+                  <table class="table table-sm table-striped">
+                    <thead>
+                      <tr>
+                        <th>Год</th>
+                        <th class="text-end">Сумма</th>
+                        <th class="text-end">Статус</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+          {% for credit in credits %}
+            <tr class="clickable-row" data-href="{% url 'bank:credit_detail' credit.pk %}">
+              <td>{{ credit.year }}</td>
+              <td class="text-end">{{ credit.remains }}</td>
+              <td class="text-end">{{ credit.status }}</td>
+            </tr>
+          {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              {% else %}
+                <p class="text-muted">Нет кредитов</p>
+              {% endif %}
+
+      </div>
+    
     <div class="mt-4">
               <h5>Объекты</h5>
               {% if objects %}
@@ -163,7 +192,7 @@
             </thead>
             <tbody>
               {% for zakaz in zakazy %}
-                <tr>
+                <tr class="clickable-row" data-href="{% url 'bank:zakaz_detail' zakaz.pk %}">
                   <td>{{ zakaz.id }}</td>
                   <td>{{ zakaz.status }}</td>
                   <td>{{ zakaz.year }}</td>
@@ -214,6 +243,26 @@
     {% endif %}
   </div>
 
+  <style>
+    tr.clickable-row {
+      cursor: pointer;
+    }
+    tr.clickable-row:hover {
+      background-color: #e7f3ff;
+    }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('tr.clickable-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+          var href = this.dataset.href;
+          if (href) {
+            window.location.href = href;
+          }
+        });
+      });
+    });
+  </script>
   <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>

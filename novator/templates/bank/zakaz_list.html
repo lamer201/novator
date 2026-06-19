@@ -92,6 +92,54 @@
                 </tbody>
             </table>
         </div>
+        {% if zakazy.has_other_pages %}
+        <nav aria-label="Пагинация заказов">
+            <ul class="pagination justify-content-center mt-3">
+                {% if zakazy.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ zakazy.previous_page_number }}{% if team %}&team={{ team }}{% endif %}" aria-label="Предыдущая">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                {% endif %}
+
+                {% for num in zakazy.paginator.page_range %}
+                    {% if num == zakazy.number %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num <= zakazy.number|add:'2' and num >= zakazy.number|add:'-2' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if team %}&team={{ team }}{% endif %}">{{ num }}</a>
+                        </li>
+                    {% elif num == 1 or num == zakazy.paginator.num_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if team %}&team={{ team }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% if num == 1 and zakazy.number > 4 %}
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if zakazy.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ zakazy.next_page_number }}{% if team %}&team={{ team }}{% endif %}" aria-label="Следующая">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     {% else %}
         <div class="alert alert-info" role="alert">
             <i class="fas fa-info-circle"></i> Список заказов пуст. 

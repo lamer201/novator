@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import *
 from main.models import ItemProperty
 from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment, HistoryOperation
@@ -440,13 +441,27 @@ def zakaz_oplata(request, zakaz_id):
 
 @login_required
 def zakaz_list(request):
-    if request.GET.get('team'):
-        zakazy = Zakaz.objects.filter(team=request.GET.get('team')).order_by('-id')
-        zakaz_items = ZakazItem.objects.filter(zakaz__in=zakazy)
+    team_id = request.GET.get('team')
+    if team_id:
+        zakazy_qs = Zakaz.objects.filter(team=team_id).order_by('-id')
     else:
-        zakazy = Zakaz.objects.filter(team__name__in=request.user.userprofile.teams.values_list('name', flat=True)).order_by('-id')
-        zakaz_items = ZakazItem.objects.all()
-    return render(request, 'bank/zakaz_list.html', {'zakazy': zakazy, 'zakaz_items': zakaz_items})
+        zakazy_qs = Zakaz.objects.filter(team__name__in=request.user.userprofile.teams.values_list('name', flat=True)).order_by('-id')
+
+    paginator = Paginator(zakazy_qs, 10)
+    page = request.GET.get('page', 1)
+    try:
+        zakazy = paginator.page(page)
+    except PageNotAnInteger:
+        zakazy = paginator.page(1)
+    except EmptyPage:
+        zakazy = paginator.page(paginator.num_pages)
+
+    zakaz_items = ZakazItem.objects.filter(zakaz__in=zakazy.object_list)
+    return render(request, 'bank/zakaz_list.html', {
+        'zakazy': zakazy,
+        'zakaz_items': zakaz_items,
+        'team': team_id,
+    })
 
 @login_required
 def zakaz_detail(request, zakaz_id):
@@ -485,6 +500,7 @@ def team_detail(request, team_id):
     zakazy_grs = zakazy.filter(zakazitem__material__category__slug='grs').count()
     zakazy_ks = zakazy.filter(zakazitem__material__category__slug='ks').count()
     zakazy_shtraf = zakazy.filter(zakazitem__material__category__slug='shtrafs').count()
+    credits = Credit.objects.filter(team=team)
     objects = ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs', zakaz__status__name='Завершен')
     history = HistoryOperation.objects.filter(team=team).order_by('-id')
 
@@ -500,6 +516,7 @@ def team_detail(request, team_id):
         'zakazy_grs': zakazy_grs,
         'zakazy_ks': zakazy_ks,
         'zakazy_shtraf': zakazy_shtraf,
+        'credits': credits,
         'objects': objects,
         'history': history,
     }

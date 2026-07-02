@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+{% load django_bootstrap5 %}
 
 {% block title %}Заказ премии{% endblock %}
 
@@ -17,18 +18,13 @@
   {% endif %}
     <div class="container my-4">
     <h2 class="my-4">Начислить премию</h2>
-    <form method="post">
-        <div class="mb-3">
-        </div>
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                {{ field }}
-            </div>
-        {% endfor %}
-        <button class="btn btn-success" type="submit">Начислить</button>
-    </form>
+    <div class="d-flex justify-content-left align-items-center mb-4 gap-3">
+  <form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+      {% bootstrap_form form %}
+      {% bootstrap_button button_type="submit" content="Отправить" %}
+  </form>
+  </div>
     <div class="mt-5">
         <h3>История начислений премий</h3>
         <div class="table-responsive">
@@ -56,5 +52,17 @@
             </table>
         </div>
     </div>
-    <script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
+<script>
+    const mask = new Inputmask({
+        alias: 'numeric',           // Используем числовой алиас
+        groupSeparator: ' ',        // Разделитель тысяч (пробел)
+        digits: 0,                  // Количество знаков после запятой (0 — только целые)
+        autoGroup: true,
+        groupSize: 3,          // Автоматически группировать разряды
+        placeholder: '0',           // Плейсхолдер для пустого поля
+        rightAlign: false           // Выравнивание по левому краю
+    });
+    mask.mask(document.getElementById('id_amount'));
+</script>
 {% endblock %}

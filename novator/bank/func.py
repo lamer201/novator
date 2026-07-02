@@ -35,6 +35,16 @@ def check_balance(request, team_id):
     except Balance.DoesNotExist:
         return JsonResponse({'text': ''}, status=404)
 
+
+def check_total_price(request, material_id, quantity):
+    try:
+        item = Material.objects.get(id=material_id)
+        total_price = item.price * float(quantity)
+        # Возвращаем нужное поле в JSON
+        return JsonResponse({'total_price': total_price})
+    except Material.DoesNotExist:
+        return JsonResponse({'total_price': ''}, status=404)
+
 def check_obuchenie(request, team_id):
     team = Team.objects.get(id=team_id)
     learn_ks = team.learn_ks

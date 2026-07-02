@@ -143,15 +143,37 @@ class ZakazFormShtraf(UserTeamFormMixin, forms.Form):
 
 class ZakazFormCredit(UserTeamFormMixin, forms.Form):
     team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
-    amount = forms.FloatField(label='Сумма кредита', required=True)
+    amount = forms.CharField(label='Сумма кредита', required=True)
     #year = forms.IntegerField(label='Год кредита', required=True)
     percent = forms.FloatField(label='Процентная ставка', required=True)
+
+    def clean_amount(self):
+        raw_value = self.cleaned_data.get('amount')
+        if raw_value is None:
+            return None
+        # Удаляем все пробелы (разделители тысяч)
+        cleaned_value = raw_value.replace(' ', '')
+        # Django автоматически преобразует строку в число
+        if not cleaned_value.lstrip('-').isdigit():
+            raise forms.ValidationError('Введите целое число')
+        return float(cleaned_value)    
 
 
 class PremiaForm(UserTeamFormMixin, forms.Form):
     team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
-    amount = forms.FloatField(label='Сумма премии', required=True)
+    amount = forms.CharField(label='Сумма премии', required=True)
     #year = forms.IntegerField(label='Год премии', required=True)
+
+    def clean_amount(self):
+        raw_value = self.cleaned_data.get('amount')
+        if raw_value is None:
+            return None
+        # Удаляем все пробелы (разделители тысяч)
+        cleaned_value = raw_value.replace(' ', '')
+        # Django автоматически преобразует строку в число
+        if not cleaned_value.lstrip('-').isdigit():
+            raise forms.ValidationError('Введите целое число')
+        return float(cleaned_value)
 
 
 class KapremontForm(UserTeamFormMixin, forms.Form):

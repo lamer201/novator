@@ -10,7 +10,7 @@ from .forms import *
 from main.models import ItemProperty
 from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment, HistoryOperation
 from mtr.models import Sklad, Stock, Shipment
-from .func import check_active_credit, get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance, make_zakaz_obuchenie, check_obuchenie
+from .func import check_active_credit, get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance, make_zakaz_obuchenie, check_obuchenie, check_total_price
 from constance import config
 
 User = get_user_model()
@@ -588,7 +588,12 @@ def credit_detail(request, credit_id):
 @transaction.atomic
 def zakaz_credit(request):
     if request.method == 'POST':
-        team = Team.objects.get(pk=request.POST.get('team'))
+        form = ZakazFormCredit(request.POST, user=request.user)
+        if form.is_valid():
+            team = Team.objects.get(pk=form.cleaned_data['team'])
+        else:
+            messages.error(request, 'Форма заполнена неверно. Пожалуйста, проверьте введённые данные.')
+            return redirect('bank:new_credit')
         #if check_active_credit(request, team.pk):
         #    messages.error(request, 'У вашей команды уже есть активный кредит. Пожалуйста, погасите его перед оформлением нового кредита.')
         #    return redirect('bank:new_credit')
@@ -596,7 +601,7 @@ def zakaz_credit(request):
         if balance.money < 1000000:
             amount_val = 1000000
         else:
-            amount_val = request.POST.get('amount')
+            amount_val = form.cleaned_data['amount']
         percent = request.POST.get('percent', 35)  # Default interest rate if not provided
         try:
             amount = float(amount_val)
@@ -690,9 +695,11 @@ def make_payment(request, credit_id):
 @transaction.atomic
 def new_premia(request):
     if request.method == 'POST':
-        team = Team.objects.get(pk=request.POST.get('team'))
-        amount_val = request.POST.get('amount')
-        balance = Balance.objects.get(team=team)
+        form = PremiaForm(request.POST, user=request.user)
+        if form.is_valid():
+            team = Team.objects.get(pk=form.cleaned_data['team'])
+            amount_val = form.cleaned_data['amount']
+            balance = Balance.objects.get(team=team)
         try:
             amount = float(amount_val)
             if amount <= 0:
@@ -705,7 +712,7 @@ def new_premia(request):
         balance.save()
         history = HistoryOperation.objects.create(
                 team=team,
-                operation_type='debit',
+                operation_type='credit',
                 amount=amount,
                 balance_before=balance.money - amount,
                 balance_after=balance.money,

@@ -37,11 +37,11 @@
         <tr>
           <td>{{ team.name }}</td>
           <td>{{ team.balance.money|floatformat:0|intcomma }}</td>
-          <td>{% for item in teams_items %}{% if item.team == team %}{{ item.items_count }}{% endif %}{% endfor %}</td>
-          <td>{% for grs in teams_grs %}{% if grs.team == team %}{{ grs.total_grs }}/
+          <td>{% for item in teams_items %}{% if item.team == team %}{{ item.items_count|floatformat:0 }}{% endif %}{% endfor %}</td>
+          <td>{% for grs in teams_grs %}{% if grs.team == team %}{{ grs.total_grs|floatformat:0 }}/
           {% for potrebitel in total_potrebiteli %}
           {% if potrebitel.team == grs.team %}
-          {{ potrebitel.total_potrebitel }}
+          {{ potrebitel.total_potrebitel|floatformat:0 }}
           {% endif %}{% endfor %}
           {% endif %}{% endfor %}</td>
           <td>{% if zakaz_items_premii %}

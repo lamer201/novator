@@ -26,7 +26,7 @@ def get_shtraf_choices():
 
 def get_grs_choices():
     choices=[]
-    for item in Material.objects.filter(category__slug='grs'):
+    for item in Material.objects.filter(slug__in=['grs', 'eko_grs']):
         choices.append((item.pk,item.name))
     return choices
 

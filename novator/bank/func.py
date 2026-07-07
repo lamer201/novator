@@ -296,7 +296,7 @@ def calculate_win_score(team):
          for item in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='premii'):
             bonus_score += float(ItemProperty.objects.get(material=item.material, property_name='winner_score').property_value)
 
-    total_points = (grs_potrebiteli * 0.001) + (total_money * 0.000001) + (team.eco_scores.score * 0.1) + bonus_score
+    total_points = (grs_potrebiteli * 0.001) + (total_money * 0.000001) + (team.eco_scores.score * 0.05) + bonus_score
     return total_points
     
 
@@ -334,5 +334,35 @@ def end_game(team):
             )
             credit.save()
             history.save()
+    if not Zakaz.objects.filter(team=team, category__slug='shtrafs').exists():
+        material = Material.objects.get(slug='bez_suchka')
+        zakaz=Zakaz.objects.create(
+            team=team,
+            year = config.YEAR,
+            month = 0,
+            payment = True,
+            category = Category.objects.get(slug='premii'),
+            status = Status.objects.get(name='Завершен')
+        )
+        ZakazItem.objects.create(
+            zakaz=zakaz,
+            material = material,
+            price = material.price,
+            quantity = 1,
+            koeff = 1,
+            profit_val = ItemProperty.objects.get(material=material, property_name='winner_score').property_value
+            
+        )
+        balance.money += material.price
+        new_balance = balance.money - material.price
+        history = HistoryOperation.objects.create(
+         team=team,
+         operation_type='credit',
+         amount=material.price,
+         balance_before=new_balance,
+         balance_after=balance.money,
+         description= f'Начисление премии {zakaz}'
+        )
+    history.save()
     balance.save()
     return JsonResponse({'text': balance.money})

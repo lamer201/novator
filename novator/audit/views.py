@@ -1,10 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from mtr.models import Team
 from django.contrib.auth import get_user_model
+from django.contrib import messages
 from audit.forms import ShtrafForm
 from bank.models import Zakaz, ZakazItem
-from main.models import Category, Material, Status
+from main.models import Category, Material, Status, ItemProperty
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.db import transaction
 from constance import config
 
@@ -18,7 +20,14 @@ def index(request):
 
 def team_detail(request, team_id):
     team = Team.objects.get(id=team_id)
-    return render(request, 'audit/team_detail.html', {'team': team})
+    zakazy = Zakaz.objects.filter(team=team,category__slug='grs')
+    items = ZakazItem.objects.filter(zakaz__in=zakazy)
+    grs = Material.objects.filter(category__slug='grs')
+    return render(request, 'audit/team_detail.html', {'team': team,
+                                                      'zakazy': zakazy,
+                                                      'items': items,
+                                                      'grs': grs
+                                                      })
 
 def team_audit(request, team_id):
     team = Team.objects.get(id=team_id)
@@ -50,3 +59,24 @@ def shtraf(request):
         return render(request, 'audit/shtraf.html', {'team': team, 'message': message})
     form = ShtrafForm()
     return render(request, 'audit/shtraf.html', {'form': form})
+
+
+@login_required
+@require_POST
+def zapusk_edit(request):
+    if request.method == 'POST':
+        zakaz_item_id = request.POST.get('zakaz_item')
+        profit_koeff = request.POST.get('koeff_val')
+        zakaz_item = get_object_or_404(ZakazItem, pk=zakaz_item_id)
+        material = Material.objects.get(pk=request.POST.get('material_item'))
+        zakaz_item.material = material
+        profit = ItemProperty.objects.get(material=material, property_name='cost').property_value
+        zakaz_item.profit_val = profit
+        try:
+            if profit_koeff is not None:
+                zakaz_item.profit_koeff = float(profit_koeff)
+            zakaz_item.save()
+            messages.success(request, 'Позиция успешно обновлена.')
+        except (ValueError, TypeError):
+            messages.error(request, 'Неверные значения коэффициента прибыли. Пожалуйста, введите корректные данные.')
+    return redirect('audit:team_detail', team_id=zakaz_item.zakaz.team.pk)

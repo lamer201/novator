@@ -11,6 +11,68 @@
   <label class="form-label me-2">Баланс</label>
   <input type ='text' id="myText" readonly class="form-control w-auto" value="{{ team.balance.money|floatformat:0|intcomma }} ₽">
   </div>
+  <div class="container my-4">
+    <h2 class="mb-4">Запуск ГРС</h2>
+    <div class="d-flex justify-content-left align-items-center mb-4 gap-3">
+      {% if zakazy %}
+      <div class="table-responsive">
+        <table class="table table-sm table-striped">
+          <thead>
+            <tr>
+              <th>ID заказа</th>
+              <th>Тип ГРС</th>
+              <th>Год</th>
+              <th class="text-end">Номер договора</th>
+              <th class="text-end">Коэффициент прибыли</th>
+              <th class="text-end">Базовая прибыль</th>
+              <th class="text-end">Итоговая прибыль</th>
+              <th class="text-end">Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for obj in items %}
+              <tr>
+                <td>{{ obj.zakaz.id }}</td>
+                <td>
+                  <form method="post" action="{% url 'audit:zapusk_edit' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="zakaz_item" value="{{ obj.pk }}"> 
+                  <select name='material_item'>
+                    <option value="{{ obj.material.pk }}">{{ obj.material.name }}</option>
+                    {% for i in grs %}
+                    <option value="{{ i.pk }}">{{ i.name }}</option>
+                    {% endfor %}
+                </td>
+                <td>{{ obj.zakaz.year }}</td>
+                <td class="text-end">{{ obj.zakaz.description }}</td>
+                <td class="text-end">{{ obj.profit_koeff }}</td>
+                <td class="text-end">{{ obj.profit_val|floatformat:0|intcomma }}</td>
+                <td class="text-end">{{ obj.calculate_profit|floatformat:0|intcomma }}</td>
+                <td class="text-end">
+                  <select name="koeff_val" class="form-select form-select-sm d-inline w-auto">
+                    <option value="0.1">0.1</option>
+                    <option value="0.2">0.2</option>
+                    <option value="0.3">0.3</option>
+                    <option value="0.4">0.4</option>
+                    <option value="0.5">0.5</option>
+                    <option value="0.6">0.6</option>
+                    <option value="0.7">0.7</option>
+                    <option value="0.8">0.8</option>
+                    <option value="0.9">0.9</option>
+                    <option value="1.0" selected>1.0</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-danger">Изменить</button>
+                </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">Нет объектов</p>
+    {% endif %}
+    </div>
 
   <div class="d-flex flex-row mb-3 gap-3 overflow-auto py-2 px-1">
     <a href="{% url 'audit:index' %}" class="btn btn-secondary">Назад к списку команд</a>

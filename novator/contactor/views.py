@@ -17,7 +17,7 @@ user = get_user_model()
 def index(request):
     zakazy = Zakaz.objects.filter(status__pk=2,payment=True,issued=False,category__slug='eco', team__name__in=request.user.userprofile.teams.values_list('name', flat=True))
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
-    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True)).order_by('pk')
     return render(request, 'contactor/index.html', {'teams': teams, 'zakazy': zakazy, 'zakazy_items': zakazy_items})
 
 def team_detail(request, team_id):

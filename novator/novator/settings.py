@@ -85,7 +85,7 @@ WSGI_APPLICATION = 'novator.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'novatory',     # Название базы данных
+        'NAME': 'novator',     # Название базы данных
         'USER': 'postgres', # Имя пользователя БД
         'PASSWORD': 'postgres',            # Пароль от БД
         'HOST': 'localhost',                 # Адрес сервера БД

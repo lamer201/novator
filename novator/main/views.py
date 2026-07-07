@@ -56,7 +56,7 @@ def end_game_func(request):
 
 
 def control(request):
-    teams = Team.objects.filter(status=True)
+    teams = Team.objects.filter(status=True).order_by('pk')
     stock = Stock.objects.filter(warehouse__team__in=teams)
     sklad = Sklad.objects.filter(is_active=True, team=None)
     stock_by_skalad = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'ks', 'eco'])

@@ -1,6 +1,5 @@
 from decimal import Decimal
 from urllib import request
-
 from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -25,6 +24,8 @@ def check_obuchenie(zakaz):
         return True
     elif zakaz.category.slug == 'ks' and team.learn_ks:
         return True
+    elif zakaz.category.slug == 'auto':
+        return True
     else:
         return False
     
@@ -42,8 +43,8 @@ def check_auto(zakaz):
 
 @login_required
 def index(request):
-    zakazy = Zakaz.objects.filter(status__pk=2,payment=True,issued=False,category__slug__in=['trubi', 'ks', 'grs'], team__name__in=request.user.userprofile.teams.values_list('name', flat=True)) 
-    zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug__in=['trubi', 'ks', 'grs'])
+    zakazy = Zakaz.objects.filter(status__pk=2,payment=True,issued=False,category__slug__in=['trubi', 'ks', 'grs', 'auto'], team__name__in=request.user.userprofile.teams.values_list('name', flat=True)) 
+    zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy, material__category__slug__in=['trubi', 'ks', 'grs', 'auto'])
     sklad = Sklad.objects.filter(is_active=True, name = request.user.userprofile.sklad)
     stock = Stock.objects.filter(warehouse__in=sklad, material__category__slug__in=['trubi', 'ks'])
     teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True)).order_by('pk')
@@ -156,7 +157,8 @@ def shipment(request, pk):
             #return redirect('mtr:index')
         if (15 * (auto_team +1)) / ((zakaz.total_items + team_total_km)) < 1:
             messages.error(request, f'Недостаточно автотранспорта. У команды {auto_team} ед. автотранспорта, {zakaz.total_items * 20} - всего км для перемещения, {team_total_km * 20} - всего км у команды.')
-            return redirect('mtr:index')
+            return redirect('mtr:index')  
+           
     for item in material:
         material_mtr = Material.objects.get(pk=item.material.pk)
         shipment = Shipment(

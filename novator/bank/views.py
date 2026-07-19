@@ -499,7 +499,7 @@ def team_detail(request, team_id):
     zakazy_lin = zakazy.filter(zakazitem__material__category__slug='trubi').count()
     zakazy_grs = zakazy.filter(zakazitem__material__category__slug='grs').count()
     zakazy_ks = zakazy.filter(zakazitem__material__category__slug='ks').count()
-    zakazy_shtraf = zakazy.filter(zakazitem__material__category__slug='shtrafs').count()
+    zakazy_shtraf = zakazy.filter(zakazitem__material__category__slug='shtrafs', status__pk=2).count()
     credits = Credit.objects.filter(team=team)
     objects = ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs', zakaz__status__name='Завершен')
     history = HistoryOperation.objects.filter(team=team).order_by('-id')

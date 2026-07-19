@@ -29,6 +29,7 @@
                 <tr>
                     <th>Команда</th>
                     <th>Баланс</th>
+                    <th>Эко баллы</th>
                     <th>Действия</th>
                 </tr>
             </thead>
@@ -37,6 +38,7 @@
             <tr>
                 <td>{{ team.name }}</td>
                 <td>{{ team.balance.money|intcomma }} ₽</td>
+                <td>{{ team.eco_scores.score|intcomma }}</td>
                 <td><a href="{% url 'audit:team_detail' team.id %}" class="btn btn-primary btn-sm">Посмотреть</a></td>
             </tr>
         {% endfor %}

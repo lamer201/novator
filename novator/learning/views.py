@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
-from bank.models import Zakaz, ZakazItem
+from bank.models import Zakaz, ZakazItem, Balance, HistoryOperation
 from main.models import Material, Status, Team
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -13,7 +13,7 @@ user = get_user_model()
 
 # Create your views here.
 def index(request):
-    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True)).order_by('pk')
     zakazy = Zakaz.objects.filter(category__slug='learning', status__pk=2, payment=True, team__in=teams)
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     return render(request, 'learning/index.html', {'teams': teams, 'zakazy': zakazy, 'zakazy_items': zakazy_items})
@@ -62,7 +62,7 @@ def create_premii(request, team_id):
             zakaz = Zakaz.objects.create(
                 team=team,
                 category=material.category,
-                status=Status.objects.get(name='Создан'),
+                status=Status.objects.get(name='Завершен'),
                 payment=False,
                 year=config.YEAR
             )
@@ -73,6 +73,18 @@ def create_premii(request, team_id):
                 price=material.price
             )
             zakaz.save()
+            balance = Balance.objects.get(team=team)
+            balance.money += material.price
+            balance.save()
+            history = HistoryOperation.objects.create(
+            team=team,
+            operation_type='credit',
+            amount=material.price,
+            balance_before=balance.money - material.price, 
+            balance_after=balance.money,
+            description= f'Прибыль от достижения {material.name}'
+            )
+            history.save()
     # Implementation for creating premii based on the team's achievements
-    messages.success(request, 'Достижение успешно оформлено!')
+    messages.success(request, f'Достижение успешно оформлено! Сумма {material.price} зачислена на баланс команды')
     return redirect('learning:team_detail', team_id=team.id)

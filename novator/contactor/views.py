@@ -2,6 +2,8 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from mtr.models import Shipment, Sklad, Stock
+from bank.forms import ZakazFormSPG
+from bank.func import make_zakaz_buildings
 from .models import EcoCompensation, EcoCompensationOperation
 from main.models import Material, Status, Team, EcoScore
 from bank.models import Zakaz, ZakazItem
@@ -90,3 +92,15 @@ def shipment(request, pk):
     eco_compensation.save()
     messages.success(request, 'Перемещение успешно выполнено.')
     return redirect('contactor:index')
+
+
+@login_required
+def create_zakaz_spg(request):
+    if request.method == 'POST':
+        form = ZakazFormSPG(request.POST, user=request.user)
+        if form.is_valid():
+            return make_zakaz_buildings(form)
+    else:
+        form = ZakazFormSPG(user=request.user)
+    
+    return render(request, 'contactor/zakaz_spg.html', {'form': form})

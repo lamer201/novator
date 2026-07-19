@@ -5,8 +5,17 @@
 {% block title %}Аудит{% endblock %}
 
 {% block content %}
+{% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
 <div class="container my-4">
   <h2 class="mb-4">Команда: {{ team.name }}</h2>
+  <h3 class="mb-4">Эко очки: {{ team.eco_scores.score|floatformat:0|intcomma }}</h2>
   <div class="d-flex justify-content-left align-items-center mb-4 gap-3">
   <label class="form-label me-2">Баланс</label>
   <input type ='text' id="myText" readonly class="form-control w-auto" value="{{ team.balance.money|floatformat:0|intcomma }} ₽">

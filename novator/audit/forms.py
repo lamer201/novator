@@ -4,9 +4,10 @@ from django.contrib.auth import get_user_model
 
 user = get_user_model()
 
+
 def get_choices():
     choices = []
-    for instance in Team.objects.all():
+    for instance in Team.objects.filter(status=True).order_by('pk'):
         choices.append((instance.pk, instance.name))
     return choices
 

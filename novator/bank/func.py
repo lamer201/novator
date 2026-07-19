@@ -130,13 +130,16 @@ def make_zakaz_buildings(form):
         message = f'Недостаточно средств на балансе для оплаты заказа. Необходимо {price}, а на балансе {balance.money}.'
         return JsonResponse({'error': message}, status=400)  
     # Create new order
-    
+    if building.pk == 55:
+        status = Status.objects.get(pk=2)
+    else:
+        status = Status.objects.get(pk=1)
     zakaz = Zakaz.objects.create(
         team=team,
         year = config.YEAR,  # Use the value from Constance
         month = 0,
         payment=payment,
-        status=Status.objects.get(name='Создан'),
+        status=status,
         description=nomer_dogovora,
         category=Category.objects.get(slug=form.cleaned_data['category'])
     )

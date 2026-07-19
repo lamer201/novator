@@ -85,6 +85,14 @@ class ZakazFormGRS(UserTeamFormMixin, forms.Form):
     #description = forms.CharField(label='Номер догвора',max_length=10)
     koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='grs')
+    
+class ZakazFormSPG(UserTeamFormMixin, forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
+    building = forms.CharField(widget=forms.HiddenInput(attrs={'id': 'grs-select'}), initial='55' )
+    #description = forms.CharField(label='Номер догвора',max_length=10)
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
+    category = forms.CharField(widget=forms.HiddenInput(), initial='grs')    
+
 
 
 class ZakazFormKS(UserTeamFormMixin, forms.Form):

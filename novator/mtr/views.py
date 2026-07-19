@@ -158,7 +158,6 @@ def shipment(request, pk):
         if (15 * (auto_team +1)) / ((zakaz.total_items + team_total_km)) < 1:
             messages.error(request, f'Недостаточно автотранспорта. У команды {auto_team} ед. автотранспорта, {zakaz.total_items * 20} - всего км для перемещения, {team_total_km * 20} - всего км у команды.')
             return redirect('mtr:index')  
-           
     for item in material:
         material_mtr = Material.objects.get(pk=item.material.pk)
         shipment = Shipment(

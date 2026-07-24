@@ -198,20 +198,19 @@ def make_zakaz_obuchenie(form):
     else:
          message = f'Недостаточно средств на балансе для оплаты обучения. Необходимо {total_price}, а на балансе {balance.money}.'
          return JsonResponse({'error': message}, status=400)
-         
-    # Create new order
-    zakaz = Zakaz.objects.create(
-        team=team,
-        year = config.YEAR,  # Use the value from Constance
-        month = 0,
-        payment=payment,
-        status=Status.objects.get(name='Создан'),
-        description='Обучение',
-        category = Category.objects.get(slug='learning')
-    )
-    zakaz.save()
-
     if learn_les:
+            # Create new order
+        zakaz = Zakaz.objects.create(
+            team=team,
+            year = config.YEAR,  # Use the value from Constance
+            month = 0,
+            payment=payment,
+            status=Status.objects.get(name='Создан'),
+            description='Обучение',
+            category = Category.objects.get(slug='learning')
+        )
+        zakaz.status = Status.objects.get(name='Проверен банком')
+        zakaz.save()
         zakazItemLes = ZakazItem.objects.create(
             zakaz=zakaz,
             material=learn_les,  # No specific material for training
@@ -223,6 +222,17 @@ def make_zakaz_obuchenie(form):
         zakazItemLes.save()
     
     if learn_grs:
+        zakaz = Zakaz.objects.create(
+            team=team,
+            year = config.YEAR,  # Use the value from Constance
+            month = 0,
+            payment=payment,
+            status=Status.objects.get(name='Создан'),
+            description='Обучение',
+            category = Category.objects.get(slug='learning')
+        )
+        zakaz.status = Status.objects.get(name='Проверен банком')
+        zakaz.save()
         zakazItemGrs = ZakazItem.objects.create(
             zakaz=zakaz,
             material=learn_grs,  # No specific material for training
@@ -234,6 +244,17 @@ def make_zakaz_obuchenie(form):
         zakazItemGrs.save()
     
     if learn_ks:
+        zakaz = Zakaz.objects.create(
+            team=team,
+            year = config.YEAR,  # Use the value from Constance
+            month = 0,
+            payment=payment,
+            status=Status.objects.get(name='Создан'),
+            description='Обучение',
+            category = Category.objects.get(slug='learning')
+        )
+        zakaz.status = Status.objects.get(name='Проверен банком')
+        zakaz.save()
         zakazItemKs = ZakazItem.objects.create(
             zakaz=zakaz,
             material=learn_ks,  # No specific material for training
@@ -256,8 +277,6 @@ def make_zakaz_obuchenie(form):
          description= f'Списание за заказ {zakaz}'
     )
     history.save()
-    zakaz.status = Status.objects.get(name='Проверен банком')
-    zakaz.save()
     return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
 
 def give_money(team):

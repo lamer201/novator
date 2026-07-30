@@ -33,7 +33,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for team in teams %}
+        {% for team in teams_sorted %}
         <tr>
           <td>{{ team.name }}</td>
           <td>{{ team.balance.money|floatformat:0|intcomma }}</td>

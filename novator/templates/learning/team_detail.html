@@ -67,30 +67,30 @@
     </form>
     </div>   
     <div class="card-body">
-      <h5 class="card-title">Заказы на обучение</h5>
-      {% if zakazy %}
+      <h5 class="card-title">ГРС</h5>
+      {% if grs %}
         <div class="table-responsive">
             <table class="table table-striped">
             <thead>
                 <tr>
-                <th>ID</th>
-                <th>Год</th>
-                <th>Статус</th>
+                <th>Название</th>
+                <th>Год запуска</th>
+                <th>Номер заказа</th>
                 </tr>
             </thead>
             <tbody>
-                {% for zakaz in zakazy %}
+                {% for item in grs %}
                 <tr>
-                <td><strong>{{ zakaz.pk }}</strong></td>
-                <td>{{ zakaz.year }}</td>
-                <td>{{ zakaz.status.name }}</td>
+                <td><strong>{{ item.material.name }}</strong></td>
+                <td>{{ item.start_year }}</td>
+                <td>{{ item.zakaz.pk }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
             </table>
         </div>
       {% else %}
-        <p>Здесь пока нет заказов на обучение.</p>
+        <p>Здесь пока нет запущенных грс.</p>
       {% endif %}
   </div>
 </div>

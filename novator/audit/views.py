@@ -20,7 +20,7 @@ def index(request):
 
 def team_detail(request, team_id):
     team = Team.objects.get(id=team_id)
-    zakazy = Zakaz.objects.filter(team=team,category__slug='grs')
+    zakazy = Zakaz.objects.filter(team=team,category__slug='grs', status__name='Завершен').order_by('pk')
     items = ZakazItem.objects.filter(zakaz__in=zakazy).order_by('zakaz_id')
     grs = Material.objects.filter(category__slug='grs')
     return render(request, 'audit/team_detail.html', {'team': team,
@@ -73,6 +73,8 @@ def zapusk_edit(request):
         team.eco_scores.score += old_material.eco_score
         material = Material.objects.get(pk=request.POST.get('material_item'))
         zakaz_item.material = material
+        if zakaz_item.start_year == '':
+            zakaz_item.start_year = config.YEAR
         team.eco_scores.score -= material.eco_score
         team.eco_scores.save()
         profit = ItemProperty.objects.get(material=material, property_name='cost').property_value

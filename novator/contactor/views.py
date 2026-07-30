@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from mtr.models import Shipment, Sklad, Stock
 from bank.forms import ZakazFormSPG
-from bank.func import make_zakaz_buildings
+from bank.func import make_zakaz_one_item
 from .models import EcoCompensation, EcoCompensationOperation
 from main.models import Material, Status, Team, EcoScore
 from bank.models import Zakaz, ZakazItem
@@ -99,7 +99,7 @@ def create_zakaz_spg(request):
     if request.method == 'POST':
         form = ZakazFormSPG(request.POST, user=request.user)
         if form.is_valid():
-            return make_zakaz_buildings(form)
+            return make_zakaz_one_item(form)
     else:
         form = ZakazFormSPG(user=request.user)
     

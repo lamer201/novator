@@ -30,7 +30,7 @@
             <tr>
               <th>ID заказа</th>
               <th>Тип ГРС</th>
-              <th>Год</th>
+              <th>Год запуска</th>
               <th class="text-end">Номер договора</th>
               <th class="text-end">Коэффициент прибыли</th>
               <th class="text-end">Базовая прибыль</th>
@@ -52,7 +52,7 @@
                     <option value="{{ i.pk }}">{{ i.name }}</option>
                     {% endfor %}
                 </td>
-                <td>{{ obj.zakaz.year }}</td>
+                <td>{{ obj.start_year }}</td>
                 <td class="text-end">{{ obj.zakaz.description }}</td>
                 <td class="text-end">{{ obj.profit_koeff }}</td>
                 <td class="text-end">{{ obj.profit_val|floatformat:0|intcomma }}</td>

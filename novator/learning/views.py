@@ -2,12 +2,14 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from bank.models import Zakaz, ZakazItem, Balance, HistoryOperation
 from main.models import Material, Status, Team
+from bank.func import history
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
 from learning.forms import ZakazFormPremii
 from constance import config
+from django.db.models import Q
 
 user = get_user_model()
 
@@ -27,8 +29,16 @@ def team_detail(request, team_id):
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     zakazy_premii = Zakaz.objects.filter(team=team, category__slug='premii')
     premii = ZakazItem.objects.filter(zakaz__in=zakazy_premii)
+    zakazy_grs = Zakaz.objects.filter(team=team, category__slug='grs')
+    zakazy_items_grs = ZakazItem.objects.filter(~Q(start_year=None), zakaz__in=zakazy_grs).order_by('start_year')
     form = ZakazFormPremii()
-    return render(request, 'learning/team_detail.html', {'team': team, 'zakazy': zakazy, 'zakazy_items': zakazy_items, 'premii': premii, 'zakazy_premii': zakazy_premii, 'form': form})
+    return render(request, 'learning/team_detail.html', {'team': team, 
+                                                         'zakazy': zakazy, 
+                                                         'zakazy_items': zakazy_items, 
+                                                         'premii': premii, 
+                                                         'zakazy_premii': zakazy_premii, 
+                                                         'grs': zakazy_items_grs,
+                                                         'form': form})
 
 @login_required
 @transaction.atomic
@@ -76,15 +86,9 @@ def create_premii(request, team_id):
             balance = Balance.objects.get(team=team)
             balance.money += material.price
             balance.save()
-            history = HistoryOperation.objects.create(
-            team=team,
-            operation_type='credit',
-            amount=material.price,
-            balance_before=balance.money - material.price, 
-            balance_after=balance.money,
-            description= f'Прибыль от достижения {material.name}'
-            )
-            history.save()
+            history(operation_type='credit', zakaz=zakaz, price=material.price, balance=balance, description=f'Прибыль от достижения {material.name}')
     # Implementation for creating premii based on the team's achievements
     messages.success(request, f'Достижение успешно оформлено! Сумма {material.price} зачислена на баланс команды')
     return redirect('learning:team_detail', team_id=team.id)
+
+

@@ -68,10 +68,13 @@ def control(request):
     teams_grs = []
     win_score = []
     total_potrebiteli = []
+    win_score_map = {}
     for team in teams:
         total_potrebitel = 0
         team_stock = Stock.objects.filter(warehouse__team=team)
-        win_score.append({'team': team, 'score': calculate_win_score(team)}) 
+        score = calculate_win_score(team)
+        win_score.append({'team': team, 'score': score})
+        win_score_map[team.pk] = score
         total = team_stock.filter(material__category__slug='trubi').aggregate(total=Sum('quantity'))['total'] or 0
         total_grs = team_stock.filter(material__category__slug='grs').aggregate(total=Sum('quantity'))['total'] or 0
         for grs in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs', zakaz__status__pk=5):
@@ -79,14 +82,18 @@ def control(request):
         total_potrebiteli.append({'team': team, 'total_potrebitel': total_potrebitel})
         teams_items.append({'team': team, 'items_count': total * 20})
         teams_grs.append({'team': team, 'total_grs': total_grs})
+
+    teams_sorted = sorted(teams, key=lambda team: win_score_map.get(team.pk, 0), reverse=True)
+
     return render(request, 'main/control.html', {'teams': teams,
+                                                  'teams_sorted': teams_sorted,
                                                   'sklad': sklad,
-                                                    'stock': stock,
-                                                      'stock_by_skalad': stock_by_skalad,
-                                                        'teams_items': teams_items,
-                                                          'teams_grs': teams_grs,
-                                                            'stock_by_skalad_grs': stock_by_skalad_grs,
-                                                              'win_score': win_score,
-                                                                'zakaz_items_premii': zakaz_items_premii,
-                                                                'bally': bally,
-                                                                'total_potrebiteli': total_potrebiteli})
+                                                  'stock': stock,
+                                                  'stock_by_skalad': stock_by_skalad,
+                                                  'teams_items': teams_items,
+                                                  'teams_grs': teams_grs,
+                                                  'stock_by_skalad_grs': stock_by_skalad_grs,
+                                                  'win_score': win_score,
+                                                  'zakaz_items_premii': zakaz_items_premii,
+                                                  'bally': bally,
+                                                  'total_potrebiteli': total_potrebiteli})

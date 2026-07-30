@@ -20,6 +20,30 @@ def get_sum(form):
                     sum_material = sum_material + (price*quantity)
     return sum_material
 
+def history(**kwargs):
+    zakaz = kwargs.get('zakaz', None)
+    price = kwargs.get('price', None)
+    balance = kwargs.get('balance', None)
+    description = kwargs.get('description', None)
+    if zakaz is None:
+        team = kwargs.get('team', None)
+    else:
+        team = zakaz.team
+    operation_type = kwargs.get('operation_type', None)
+    if operation_type == 'debit':
+        balance_before = balance.money + price
+    elif operation_type == 'credit':
+        balance_before = balance.money - price
+    make_history = HistoryOperation.objects.create(
+        team=team,
+        operation_type=operation_type,
+        amount=price,
+        balance_before=balance_before,
+        balance_after=balance.money,
+        description= description
+        )
+    make_history.save()
+
 
 def test_balance(price, balance):
     if price < balance:
@@ -58,7 +82,7 @@ def check_active_credit(request, team_id):
     active_credit = Credit.objects.filter(team=team, status='active').exists()
     return active_credit
 
-def make_zakaz(form):
+def make_zakaz_many_item(form):
     # Get form data
     team = Team.objects.get(pk=form.cleaned_data['team']) 
     balance = Balance.objects.get(team=team)     
@@ -100,26 +124,18 @@ def make_zakaz(form):
     new_balance = balance.money - test_balance
     balance.money = new_balance
     balance.save()
-    history = HistoryOperation.objects.create(
-         team=team,
-         operation_type='debit',
-         amount=test_balance,
-         balance_before=new_balance + test_balance,
-         balance_after=balance.money,
-         description= f'Списание за заказ {zakaz}'
-    )
-    history.save()
+    history(operation_type='debit', zakaz=zakaz, price=test_balance, balance=balance, description=f'Оплата заказа {zakaz.pk}')
     return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)  # Replace with your success URL
 
 @transaction.atomic
-def make_zakaz_buildings(form):
+def make_zakaz_one_item(form):
     # Get form data
     team = Team.objects.get(pk=form.cleaned_data['team']) 
     balance = Balance.objects.get(team=team)    
-    building = Material.objects.get(pk=form.cleaned_data['building']) 
-    price = building.price * float(form.cleaned_data['koeff'])
-    if building.category.slug == 'grs':
-        profit = ItemProperty.objects.get(material=building, property_name='cost').property_value
+    material = Material.objects.get(pk=form.cleaned_data['material']) 
+    price = material.price * float(form.cleaned_data['koeff'])
+    if material.category.slug == 'grs':
+        profit = ItemProperty.objects.get(material=material, property_name='cost').property_value
         nomer_dogovora = Zakaz.objects.filter(category__slug='grs',team=team).filter(~Q(status__name='Отменён')).count() +1
     else:        
          profit = 0
@@ -130,7 +146,7 @@ def make_zakaz_buildings(form):
         message = f'Недостаточно средств на балансе для оплаты заказа. Необходимо {price}, а на балансе {balance.money}.'
         return JsonResponse({'error': message}, status=400)  
     # Create new order
-    if building.pk == 55:
+    if material.slug == 'spg':
         status = Status.objects.get(pk=2)
     else:
         status = Status.objects.get(pk=1)
@@ -147,7 +163,7 @@ def make_zakaz_buildings(form):
 
     zakazItem = ZakazItem.objects.create(
         zakaz=zakaz,
-        material=building,
+        material=material,
         price=price,
         quantity=1,  # Assuming quantity is always 1 for GRS items
         koeff=float(form.cleaned_data['koeff']) ,
@@ -158,15 +174,7 @@ def make_zakaz_buildings(form):
     new_balance = balance.money - price
     balance.money = new_balance
     balance.save()
-    history = HistoryOperation.objects.create(
-         team=team,
-         operation_type='debit',
-         amount=price,
-         balance_before=new_balance + price,
-         balance_after=balance.money,
-         description= f'Списание за заказ {zakaz}'
-    )
-    history.save()
+    history(operation_type='debit', zakaz=zakaz, price=price, balance=balance, description=f'Оплата заказа {zakaz.pk}')
     return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)  # Replace with your success URL
 
 
@@ -220,7 +228,7 @@ def make_zakaz_obuchenie(form):
             profit_val=0
         )
         zakazItemLes.save()
-    
+        history(operation_type='debit', zakaz=zakaz, price=price_les, balance=balance, description=f'Оплата заказа {zakaz.pk}')
     if learn_grs:
         zakaz = Zakaz.objects.create(
             team=team,
@@ -242,6 +250,7 @@ def make_zakaz_obuchenie(form):
             profit_val=0
         )
         zakazItemGrs.save()
+        history(operation_type='debit', zakaz=zakaz, price=price_grs, balance=balance, description=f'Оплата заказа {zakaz.pk}')
     
     if learn_ks:
         zakaz = Zakaz.objects.create(
@@ -264,43 +273,20 @@ def make_zakaz_obuchenie(form):
             profit_val=0
         )
         zakazItemKs.save()
+        history(operation_type='debit', zakaz=zakaz, price=price_ks, balance=balance, description=f'Оплата заказа {zakaz.pk}')
         
     new_balance = balance.money - total_price
     balance.money = new_balance
     balance.save()
-    history = HistoryOperation.objects.create(
-         team=team,
-         operation_type='debit',
-         amount=total_price,
-         balance_before=new_balance + total_price,
-         balance_after=balance.money,
-         description= f'Списание за заказ {zakaz}'
-    )
-    history.save()
     return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
 
 def give_money(team):
     balance = Balance.objects.get(team=team)
     balance.money += config.MONEY_PER_YEAR
-    history = HistoryOperation.objects.create(
-        team=team,
-        operation_type='credit',
-        amount=config.MONEY_PER_YEAR,
-        balance_before=balance.money - config.MONEY_PER_YEAR, 
-        balance_after=balance.money,
-        description= f'Начисление ежегодной премии в сумме {config.MONEY_PER_YEAR}'
-    )
+    history(operation_type='credit', team=team, price=config.MONEY_PER_YEAR, balance=balance, description=f'Ежегодная премия {config.MONEY_PER_YEAR}')
     for grs in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs'):
         balance.money += grs.calculate_profit
-        history = HistoryOperation.objects.create(
-        team=team,
-        operation_type='credit',
-        amount=grs.calculate_profit,
-        balance_before=balance.money - grs.calculate_profit, 
-        balance_after=balance.money,
-        description= f'Прибыль от грс {grs.material.name}'
-    )
-    history.save()
+        history(operation_type='credit', team=team, price=grs.calculate_profit, balance=balance, grs=grs, description=f'Прибыль от {grs.material.name}')
     balance.save()
     return JsonResponse({'text': balance.money})
 
@@ -326,15 +312,7 @@ def end_game(team):
     balance = Balance.objects.get(team=team)
     for grs in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='grs'):
         balance.money += grs.calculate_profit
-        history = HistoryOperation.objects.create(
-        team=team,
-        operation_type='credit',
-        amount=grs.calculate_profit,
-        balance_before=balance.money - grs.calculate_profit, 
-        balance_after=balance.money,
-        description= f'Прибыль от грс {grs.material.name}'
-        )
-        history.save()
+        history(operation_type='credit', team=team, price=grs.calculate_profit, balance=balance, grs=grs, description=f'Прибыль от {grs.material.name}')
     if Credit.objects.filter(team=team, status='active').exists():
          credits = Credit.objects.filter(team=team, status='active')
          for credit in credits:
@@ -346,17 +324,9 @@ def end_game(team):
             payment.save()
             balance.money-=credit.remains
             credit.status='paid'
-            history = HistoryOperation.objects.create(
-            team=team,
-            operation_type='debit',
-            amount=credit.remains,
-            balance_before=balance.money + credit.remains, 
-            balance_after=balance.money,
-            description= f'Выплата кредита {credit.pk}'
-            )
+            history(operation_type='debit', team=team, price=credit.remains, balance=balance, credit=credit, description=f'Выплата кредита {credit.pk}')
             credit.save()
-            history.save()
-    if not Zakaz.objects.filter(team=team, category__slug='shtrafs').exists():
+    if not Zakaz.objects.filter(team=team, category__slug='shtrafs', status__pk=5).exists():
         material = Material.objects.get(slug='bez_suchka')
         zakaz=Zakaz.objects.create(
             team=team,
@@ -376,15 +346,6 @@ def end_game(team):
             
         )
         balance.money += material.price
-        new_balance = balance.money - material.price
-        history = HistoryOperation.objects.create(
-         team=team,
-         operation_type='credit',
-         amount=material.price,
-         balance_before=new_balance,
-         balance_after=balance.money,
-         description= f'Начисление премии {zakaz}'
-        )
-    history.save()
+        history(operation_type='credit', zakaz=zakaz, price=material.price, balance=balance, description=f'Прибыль от премии {material.name}')
     balance.save()
     return JsonResponse({'text': balance.money})

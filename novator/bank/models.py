@@ -54,6 +54,7 @@ class ZakazItem(models.Model):
     refund = models.BooleanField(default=False, verbose_name='Возврат')
     profit_val = models.FloatField(max_length=10, default=0, verbose_name='Прибыль')
     profit_koeff = models.FloatField(max_length=10, default=0, verbose_name='Коэффициент прибыли')
+    start_year = models.CharField(max_length=1, blank=True,verbose_name='Год запуска')
 
     def __str__(self):
         return f"{self.material.name}"

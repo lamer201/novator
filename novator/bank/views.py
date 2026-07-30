@@ -10,10 +10,52 @@ from .forms import *
 from main.models import ItemProperty
 from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment, HistoryOperation
 from mtr.models import Sklad, Stock, Shipment
-from .func import check_active_credit, get_sum, check_balance, make_zakaz, make_zakaz_buildings, test_balance, make_zakaz_obuchenie, check_obuchenie, check_total_price
+from .func import check_active_credit, get_sum, check_balance, make_zakaz_many_item, make_zakaz_one_item, test_balance, make_zakaz_obuchenie, check_obuchenie, check_total_price, history
 from constance import config
 
 User = get_user_model()
+
+def get_zakaz_many_item_form_class(category, team=False):
+    category = (category or '').lower()
+    forms_map = {
+        'auto': ZakazFormAutoTeam if team else ZakazFormAuto,
+        'obuchenie': ZakazFormObuchenieTeam if team else ZakazFormObuchenie,
+        'truba': ZakazFormTrubTeam if team else ZakazFormTrub,
+        'kapremont': KapremontFormTeam if team else KapremontForm,
+        
+    }
+    return forms_map.get(category)
+
+
+def get_zakaz_one_item_form_class(category, team=False):
+    category = (category or '').lower()
+    forms_map = {
+        'grs': ZakazFormGRSTeam if team else ZakazFormGRS,
+        'ks': ZakazFormKSTeam if team else ZakazFormKS,
+        'buildings': ZakazFormBuildingsTeam if team else ZakazFormBuildings,
+        'bank': ZakazFormBankTeam if team else ZakazFormBank,
+        'shtraf': ZakazFormShtrafTeam if team else ZakazFormShtraf,
+    }
+    return forms_map.get(category)
+
+
+def validate_learning_selection(form):
+    return form.cleaned_data.get('learn_les') or form.cleaned_data.get('learn_grs') or form.cleaned_data.get('learn_ks')
+
+
+def parse_masked_number(value):
+    if value is None:
+        return None
+    text = str(value).strip().replace('\u00A0', ' ').replace(' ', '')
+    if ',' in text and '.' in text:
+        text = text.replace(',', '')
+    elif ',' in text:
+        text = text.replace(',', '.')
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
 
 @login_required
 def zakaz_issued(request, zakaz_id):
@@ -24,87 +66,65 @@ def zakaz_issued(request, zakaz_id):
     return redirect('mtr:index')
 
 @login_required
-def create_zakaz(request):
-    if request.GET.get('category') == 'auto':
-        type_form = ZakazFormAuto
-    elif request.GET.get('category') == 'obuchenie':
-        type_form = ZakazFormObuchenie
-    elif request.GET.get('category') == 'shtraf':
-        type_form = ZakazFormShtraf
-    elif request.GET.get('category') == 'truba':
-        type_form = ZakazFormTrub
-    elif request.GET.get('category') == 'kapremont':
-        type_form = KapremontForm
-    elif request.GET.get('category') == 'bank':
-        type_form = ZakazFormBank
-    else:
+def create_zakaz_many_item(request):
+    type_form = get_zakaz_many_item_form_class(request.GET.get('category'))
+    if not type_form:
         messages.error(request, 'Неверная категория заказа.')
         return redirect('bank:bank_list')
+
     if request.method == 'POST':
         form = type_form(request.POST, user=request.user)
         if form.is_valid():
-            if (get_sum(form) > Balance.objects.get(team=form.cleaned_data['team']).money):
+            balance = get_object_or_404(Balance, team=form.cleaned_data['team'])
+            if get_sum(form) > balance.money:
                 messages.error(request, 'Недостаточно средств на балансе для создания заказа.')
                 return redirect('bank:bank_list')
-            return make_zakaz(form)
+            return make_zakaz_many_item(form)
     else:
         form = type_form(user=request.user)
-    
+
     return render(request, 'bank/zakaz.html', {'form': form})
 
 @login_required
-def create_zakaz_team(request, team_id):
-    if request.GET.get('category') == 'truba':
-        type_form = ZakazFormTrubTeam
-    elif request.GET.get('category') == 'auto':
-        type_form = ZakazFormAutoTeam
-    elif request.GET.get('category') == 'obuchenie':
-        type_form = ZakazFormObuchenieTeam
-    elif request.GET.get('category') == 'shtraf':
-        type_form = ZakazFormShtrafTeam
-    elif request.GET.get('category') == 'kapremont':
-        type_form = KapremontFormTeam
-    elif request.GET.get('category') == 'bank':
-        type_form = ZakazFormBankTeam
-    else:
+def create_zakaz_many_item_team(request, team_id):
+    type_form = get_zakaz_many_item_form_class(request.GET.get('category'), team=True)
+    if not type_form:
         messages.error(request, 'Неверная категория заказа.')
-        return redirect('bank:team_detail', team_id = team_id)
+        return redirect('bank:team_detail', team_id=team_id)
+
     if request.method == 'POST':
         form = type_form(request.POST)
         if form.is_valid():
-            team = Team.objects.get(pk=form.cleaned_data['team'])
-            if (get_sum(form) > Balance.objects.get(team=team).money):
+            team = get_object_or_404(Team, pk=form.cleaned_data['team'])
+            balance = get_object_or_404(Balance, team=team)
+            if get_sum(form) > balance.money:
                 messages.error(request, 'Недостаточно средств на балансе для создания заказа.')
-                return redirect('bank:team_detail', team_id = team_id)
-            return make_zakaz(form)
+                return redirect('bank:team_detail', team_id=team_id)
+            return make_zakaz_many_item(form)
     else:
-        form = type_form(team_id = team_id)
-        team_balance = Balance.objects.get(team__pk=team_id)
-    
+        form = type_form(team_id=team_id)
+        team_balance = get_object_or_404(Balance, team__pk=team_id)
+
     return render(request, 'bank/zakaz.html', {'form': form,
                                                'balance': team_balance})
 
 
 @login_required
-def create_zakaz_buildings_team(request, team_id):
-    if request.GET.get('category') == 'buildings':
-        type_form = ZakazFormBuildingsTeam
-    elif request.GET.get('category') == 'grs':
-        type_form = ZakazFormGRSTeam
-    elif request.GET.get('category') == 'ks':
-        type_form = ZakazFormKSTeam
-    else:
+def create_zakaz_one_item_team(request, team_id):
+    type_form = get_zakaz_one_item_form_class(request.GET.get('category'), team=True)
+    if not type_form:
         messages.error(request, 'Неверная категория заказа.')
-        return redirect('bank:team_detail', team_id = team_id)
+        return redirect('bank:team_detail', team_id=team_id)
+
     if request.method == 'POST':
         form = type_form(request.POST)
         if form.is_valid():
-            return make_zakaz_buildings(form)
+            return make_zakaz_one_item(form)
     else:
-        form = type_form(team_id = team_id)
-        team_balance = Balance.objects.get(team__pk=team_id)
-    
-    return render(request, 'bank/zakaz.html', {'form': form, 
+        form = type_form(team_id=team_id)
+        team_balance = get_object_or_404(Balance, team__pk=team_id)
+
+    return render(request, 'bank/zakaz.html', {'form': form,
                                                'balance': team_balance})
 
 @login_required
@@ -115,23 +135,19 @@ def zakaz_check(request, zakaz_id):
     return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
 
 @login_required
-def create_zakaz_buildings(request):
-    if request.GET.get('category') == 'buildings':
-        type_form = ZakazFormBuildings
-    elif request.GET.get('category') == 'grs':
-        type_form = ZakazFormGRS
-    elif request.GET.get('category') == 'ks':
-        type_form = ZakazFormKS
-    else:
+def create_zakaz_one_item(request):
+    type_form = get_zakaz_one_item_form_class(request.GET.get('category'))
+    if not type_form:
         messages.error(request, 'Неверная категория заказа.')
         return redirect('bank:bank_list')
+
     if request.method == 'POST':
         form = type_form(request.POST, user=request.user)
         if form.is_valid():
-            return make_zakaz_buildings(form)
+            return make_zakaz_one_item(form)
     else:
         form = type_form(user=request.user)
-    
+
     return render(request, 'bank/zakaz.html', {'form': form})
 
 
@@ -140,13 +156,13 @@ def create_zakaz_obuchenie(request):
     if request.method == 'POST':
         form = ZakazFormObuchenie(request.POST, user=request.user)
         if form.is_valid():
-            if form.cleaned_data['learn_les'] == False and form.cleaned_data['learn_grs'] == False and form.cleaned_data['learn_ks'] == False:
+            if not validate_learning_selection(form):
                 messages.error(request, 'Выберите хотя бы один вид обучения.')
                 return redirect('bank:bank_list')
             return make_zakaz_obuchenie(form)
     else:
         form = ZakazFormObuchenie(user=request.user)
-    
+
     return render(request, 'bank/zakaz.html', {'form': form})
 
 
@@ -155,13 +171,13 @@ def create_zakaz_obuchenie_team(request, team_id):
     if request.method == 'POST':
         form = ZakazFormObuchenieTeam(request.POST)
         if form.is_valid():
-            if form.cleaned_data['learn_les'] == False and form.cleaned_data['learn_grs'] == False and form.cleaned_data['learn_ks'] == False:
+            if not validate_learning_selection(form):
                 messages.error(request, 'Выберите хотя бы один вид обучения.')
-                return redirect('bank:team_detail', team_id = team_id)
+                return redirect('bank:team_detail', team_id=team_id)
             return make_zakaz_obuchenie(form)
     else:
-        form = ZakazFormObuchenieTeam(team_id = team_id)
-    
+        form = ZakazFormObuchenieTeam(team_id=team_id)
+
     return render(request, 'bank/zakaz.html', {'form': form})
 
 @login_required
@@ -372,15 +388,7 @@ def zakaz_otmena(request, zakaz_id):
                 balance = Balance.objects.get(team=zakaz.team)
                 balance.money += total_refund
                 balance.save()
-                history = HistoryOperation.objects.create(
-                    team=zakaz.team,
-                    operation_type='credit',
-                    amount=total_refund,
-                    balance_before=balance.money - total_refund,
-                    balance_after=balance.money,
-                    description= f'Возврат средств после отмены заказа {zakaz}'
-                    )
-                history.save()
+                history(operation_type='credit', zakaz=zakaz, price=total_refund, balance=balance, description=f'Возврат средств после отмены заказа {zakaz.pk}')
             except Balance.DoesNotExist:
                 messages.error(request, 'Баланс команды не найден. Отмена заказа отменена.')
                 return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
@@ -407,30 +415,14 @@ def zakaz_oplata(request, zakaz_id):
     balance = Balance.objects.get(team=zakaz.team)
     if zakaz.category.pk == 6:
         balance.money += total_cost
-        history = HistoryOperation.objects.create(
-            team=zakaz.team,
-            operation_type='credit',
-            amount=total_cost,
-            balance_before=balance.money - total_cost,
-            balance_after=balance.money,
-            description= f'Получение премии за достижение {zakaz}'
-        )
+        history(operation_type='credit', zakaz=zakaz, price=total_cost, balance=balance, description=f'Прибыль от премии за достижение {zakaz}')
     else:
         if balance.money < total_cost:
             messages.error(request, 'Недостаточно средств на балансе для оплаты заказа.')
             return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
         balance.money -= total_cost
-        history = HistoryOperation.objects.create(
-            team=zakaz.team,
-            operation_type='debit',
-            amount=total_cost,
-            balance_before=balance.money + total_cost,
-            balance_after=balance.money,
-            description= f'Оплата заказа {zakaz}'
-        )
+        history(operation_type='debit', zakaz=zakaz, price=total_cost, balance=balance, description=f'Оплата заказа {zakaz}')
     balance.save()
-    
-    history.save()
     zakaz.payment = True
     zakaz.status = Status.objects.get(name='Проверен банком')
     zakaz.save()
@@ -484,6 +476,22 @@ def bank_list(request):
         'new_zakazs': new_zakaz
     }
     return render(request, 'bank/bank.html', context)
+
+@login_required
+def check_new_zakazs(request):
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
+    new_zakazs = Zakaz.objects.filter(status=1, team__in=teams).order_by('-id')[:25]
+    data = [
+        {
+            'id': zakaz.pk,
+            'number': zakaz.pk,
+            'team_name': zakaz.team.name if zakaz.team else '-',
+            'category': zakaz.category.name if zakaz.category else '-',
+            'total_sum': zakaz.get_total_sum(),
+        }
+        for zakaz in new_zakazs
+    ]
+    return JsonResponse({'new_zakazs': data})
 
 @login_required
 def team_detail(request, team_id):
@@ -625,15 +633,7 @@ def zakaz_credit(request):
         credit.save()
         balance.money += amount
         balance.save()
-        history = HistoryOperation.objects.create(
-            team=team,
-            operation_type='credit',
-            amount=amount,
-            balance_before=balance.money - amount,
-            balance_after=balance.money,
-            description= f'Получение кредита на сумму {amount}'
-            )
-        history.save()
+        history(operation_type='credit', team=team, price=amount, balance=balance, description=f'Получение кредита на сумму {amount}')
         messages.success(request, f'Кредит на сумму {amount} создан для команды "{team.name}".')
         return redirect('bank:credit_detail', credit_id=credit.pk)
     form = ZakazFormCredit(user=request.user)
@@ -645,49 +645,36 @@ def make_payment(request, credit_id):
     credit = get_object_or_404(Credit, pk=credit_id)
     if request.method == 'POST':
         payment_amount_val = request.POST.get('payment_amount')
+        payment_amount = parse_masked_number(payment_amount_val)
         balance = Balance.objects.get(team=credit.team)
-        try:
-            payment_amount = float(payment_amount_val)
-            if payment_amount <= 0:
-                raise ValueError()
-            if balance.money < payment_amount:
-                messages.error(request, 'Недостаточно средств на балансе для оплаты кредита. Пожалуйста, пополните баланс и попробуйте снова.')
-                return redirect('bank:credit_detail', credit_id=credit.pk)
-            if payment_amount > credit.remains:
-                messages.error(request, 'Сумма платежа превышает оставшуюся сумму кредита. Пожалуйста, введите корректную сумму.')
-                return redirect('bank:credit_detail', credit_id=credit.pk)
-        except (ValueError, TypeError):
+        if payment_amount is None or payment_amount <= 0:
             messages.error(request, 'Неверная сумма платежа. Пожалуйста, введите положительное число.')
             return redirect('bank:credit_detail', credit_id=credit.pk)
 
-        # Deduct payment from balance and update credit
+        if balance.money < payment_amount:
+            messages.error(request, 'Недостаточно средств на балансе для оплаты кредита. Пожалуйста, пополните баланс и попробуйте снова.')
+            return redirect('bank:credit_detail', credit_id=credit.pk)
+
+        if payment_amount > credit.remains:
+            messages.error(request, 'Сумма платежа превышает оставшуюся сумму кредита. Пожалуйста, введите корректную сумму.')
+            return redirect('bank:credit_detail', credit_id=credit.pk)
+
         balance.money -= payment_amount
         balance.save()
 
         credit.remains -= payment_amount
-        #credit.remains_percent -= payment_amount * (credit.percent / 100)
         credit.save()
-        history = HistoryOperation.objects.create(
-                team=credit.team,
-                operation_type='debit',
-                amount=payment_amount,
-                balance_before=balance.money + payment_amount,
-                balance_after=balance.money,
-                description= f'Платеж по кредиту {credit.pk}'
-                )
-        history.save()
-
+        history(operation_type='debit', team=credit.team, price=payment_amount, balance=balance, description=f'Платеж по кредиту {credit.pk}')
         CreditPayment.objects.create(
             credit=credit,
             amount=payment_amount,
             year=config.YEAR
         )
-        if credit.is_fully_paid():  
+        if credit.is_fully_paid():
             credit.status = 'paid'
             credit.save()
         messages.success(request, f'Платеж в размере {payment_amount} успешно произведён по кредиту #{credit.pk}.')
         return redirect('bank:credit_detail', credit_id=credit.pk)
-        
 
     return redirect('bank:credit_detail', credit_id=credit.pk)
 
@@ -710,15 +697,7 @@ def new_premia(request):
 
         balance.money += amount
         balance.save()
-        history = HistoryOperation.objects.create(
-                team=team,
-                operation_type='credit',
-                amount=amount,
-                balance_before=balance.money - amount,
-                balance_after=balance.money,
-                description= f'Получение премии на сумму {amount}'
-                )
-        history.save()
+        history(operation_type='credit', team=team, price=amount, balance=balance, description=f'Получение премии на сумму {amount}')
         premia = Premia.objects.create(
             team=team,
             amount=amount,

@@ -1,10 +1,11 @@
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from mtr.models import Shipment, Sklad, Stock
 from bank.forms import ZakazFormSPG
 from bank.func import make_zakaz_one_item
-from .models import EcoCompensation, EcoCompensationOperation
+from .models import EcoCompensation, EcoCompensationOperation, HistoryOperation
 from main.models import Material, Status, Team, EcoScore
 from bank.models import Zakaz, ZakazItem
 from bank.func import calculate_win_score
@@ -14,6 +15,22 @@ from django.contrib.auth import get_user_model
 
 user = get_user_model()
 
+
+def history(**kwargs):
+    team = kwargs.get('team')
+    zakaz = kwargs.get('zakaz')
+    eco_compensation = kwargs.get('eco_compensation')
+    operation_type = kwargs.get('operation_type')
+    description = kwargs.get('description')
+
+    operation = HistoryOperation.record(
+        team=team,
+        zakaz=zakaz,
+        eco_compensation=eco_compensation,
+        operation_type=operation_type,
+        description=description
+    )
+    operation.save()
 
 # Create your views here.
 def index(request):
@@ -27,8 +44,9 @@ def team_detail(request, team_id):
     zakazy = Zakaz.objects.filter(team=team, category__slug__in=['trubi','ks','grs'], status__pk__in=['3','5'])
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     stock = Stock.objects.filter(warehouse__team=team, material__category__slug='eco')
+    history_operations = HistoryOperation.objects.filter(team=team)
 
-    return render(request, 'contactor/team_detail.html', {'team': team, 'zakazy': zakazy, 'zakazy_items': zakazy_items, 'stock': stock})
+    return render(request, 'contactor/team_detail.html', {'team': team, 'zakazy': zakazy, 'zakazy_items': zakazy_items, 'stock': stock, 'history_operations': history_operations})
 
 @login_required
 @transaction.atomic
@@ -45,12 +63,20 @@ def create_eco_compensation(request, zakaz_id):
     except Exception as e:
         messages.error(request, f'Ошибка при оформлении компенсации: {e}')
         return redirect('contactor:team_detail', team_id=team.id)
-    eco_compensation_operation = EcoCompensationOperation.objects.create(
+    EcoCompensationOperation.record(
+        team=team,
         zakaz=zakaz,
         eco_compensation=eco_compensation,
-        description=f'Компенсация за заказ {zakaz.id} с эко-оценкой {eco_compensation}'
+        operation_type='compensation',
+        description=f'Компенсация {eco_compensation}. Сейчас {eco_score.score} Эко-баллов'
     )
-    eco_compensation_operation.save()
+    history(
+        team=team,
+        zakaz=zakaz,
+        eco_compensation=eco_compensation,
+        operation_type='compensation',
+        description=f'Компенсация {eco_compensation}. Сейчас {eco_score.score} Эко-баллов'
+    )
     messages.success(request, 'Компенсация успешно оформлена!')
     return redirect('contactor:team_detail', team_id=team.id)
 
@@ -84,12 +110,20 @@ def shipment(request, pk):
     zakaz.issued = True
     zakaz.status = Status.objects.get(pk=3)
     zakaz.save()
-    eco_compensation = EcoCompensationOperation.objects.create(
+    EcoCompensationOperation.record(
+        team=team,
         zakaz=zakaz,
         eco_compensation=zakaz.total_eco_score,
-        description=f'Компенсация за перемещение заказа {zakaz.id} с эко-оценкой {zakaz.total_eco_score}'
+        operation_type='shipment',
+        description=f'Компенсация  {zakaz.total_eco_score}. Сейчас {team.eco_scores.score} Эко-баллов'
     )
-    eco_compensation.save()
+    history(
+        team=team,
+        zakaz=zakaz,
+        eco_compensation=zakaz.total_eco_score,
+        operation_type='shipment',
+        description=f'Компенсация  {zakaz.total_eco_score}. Сейчас {team.eco_scores.score} Эко-баллов'
+    )
     messages.success(request, 'Перемещение успешно выполнено.')
     return redirect('contactor:index')
 
@@ -104,3 +138,29 @@ def create_zakaz_spg(request):
         form = ZakazFormSPG(user=request.user)
     
     return render(request, 'contactor/zakaz_spg.html', {'form': form})
+
+
+@login_required
+def check_new_contactor_orders(request):
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
+    zakazy = Zakaz.objects.filter(
+        status__pk=2,
+        payment=True,
+        issued=False,
+        category__slug='eco',
+        team__in=teams
+    ).order_by('-id')[:50]
+
+    data = []
+    for zakaz in zakazy:
+        items = ZakazItem.objects.filter(zakaz=zakaz)
+        material_text = ', '.join(f"{item.material.name}-{int(item.quantity)} шт." for item in items)
+        data.append({
+            'id': zakaz.id,
+            'team_name': zakaz.team.name if zakaz.team else '-',
+            'material': material_text,
+            'year': zakaz.year,
+            'eco_score': zakaz.total_eco_score,
+        })
+
+    return JsonResponse({'zakazy': data})

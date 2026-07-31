@@ -1,5 +1,6 @@
 from decimal import Decimal
 from urllib import request
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -8,6 +9,8 @@ from django.contrib import messages
 from .models import Extradition, Sklad, Shipment, Material, Stock
 from main.models import Status, Team
 from bank.models import Zakaz, ZakazItem
+from contactor.models import EcoCompensationOperation
+from contactor.views import history
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
@@ -83,6 +86,39 @@ def index(request):
         'grs_items': grs_items,
     }
     return render(request, 'mtr/index.html', context)
+
+@login_required
+def check_new_extraditions(request):
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
+    zakazy = Zakaz.objects.filter(
+        status__pk=2,
+        payment=True,
+        issued=False,
+        category__slug__in=['trubi', 'ks', 'grs', 'auto'],
+        team__in=teams
+    ).order_by('-id')[:50]
+
+    data = []
+    for zakaz in zakazy:
+        items = ZakazItem.objects.filter(zakaz=zakaz, material__category__slug__in=['trubi', 'ks', 'grs', 'auto'])
+        material_text = ', '.join(f"{item.material.name}-{int(item.quantity)} шт." for item in items)
+        obuchenie = check_obuchenie(zakaz)
+        transport = True
+        if zakaz.category.slug == 'trubi':
+            transport = check_auto(zakaz)
+
+        data.append({
+            'id': zakaz.pk,
+            'team_name': zakaz.team.name if zakaz.team else '-',
+            'material': material_text,
+            'year': zakaz.year,
+            'total_km': zakaz.total_km,
+            'total_eco_score': zakaz.total_eco_score,
+            'can_issue': obuchenie and transport,
+            'issue_reason': obuchenie and transport and '' or (not obuchenie and 'Отсутствует обучение' or 'Не хватает транспорта'),
+        })
+
+    return JsonResponse({'zakazy': data})
 
 @login_required
 def sklad(request):
@@ -178,5 +214,12 @@ def shipment(request, pk):
     zakaz.issued = True
     zakaz.status = Status.objects.get(pk=5)
     zakaz.save()
+    history(
+        team=team,
+        zakaz=zakaz,
+        eco_compensation=zakaz.total_eco_score,
+        operation_type='shipment',
+        description=f'Списание  {zakaz.total_eco_score}. Сейчас {team.eco_scores.score} Эко-баллов'
+    )
     messages.success(request, 'Перемещение успешно выполнено.')
     return redirect('mtr:index')

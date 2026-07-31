@@ -5,6 +5,8 @@ from django.contrib import messages
 from audit.forms import ShtrafForm
 from bank.models import Zakaz, ZakazItem
 from main.models import Category, Material, Status, ItemProperty
+from contactor.models import EcoCompensationOperation
+from contactor.views import history
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.db import transaction
@@ -71,11 +73,25 @@ def zapusk_edit(request):
         team = Team.objects.get(pk=zakaz_item.zakaz.team.pk)
         old_material = zakaz_item.material
         team.eco_scores.score += old_material.eco_score
+        history(
+            team=team,
+            zakaz=zakaz_item.zakaz,
+            eco_compensation=old_material.eco_score,
+            operation_type='audit_correction',
+            description=f'Компенсация {old_material.eco_score} за изменение типа ГРС. Сейчас {team.eco_scores.score} Эко-баллов'
+        )
         material = Material.objects.get(pk=request.POST.get('material_item'))
         zakaz_item.material = material
         if zakaz_item.start_year == '':
             zakaz_item.start_year = config.YEAR
         team.eco_scores.score -= material.eco_score
+        history(
+            team=team,
+            zakaz=zakaz_item.zakaz,
+            eco_compensation=-material.eco_score,
+            operation_type='audit_correction',
+            description=f'Списание {material.eco_score} за изменение типа ГРС. Сейчас {team.eco_scores.score} Эко-баллов'
+        )
         team.eco_scores.save()
         profit = ItemProperty.objects.get(material=material, property_name='cost').property_value
         zakaz_item.profit_val = profit

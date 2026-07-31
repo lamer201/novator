@@ -477,6 +477,14 @@ def bank_list(request):
     }
     return render(request, 'bank/bank.html', context)
 
+""" @login_required
+def compute_total_price(request):
+    if request.method == 'POST':
+        total_price = compute_total_price_from_data(request.POST)
+    else:
+        total_price = compute_total_price_from_data(request.GET)
+    return JsonResponse({'total_price': total_price}) """
+
 @login_required
 def check_new_zakazs(request):
     teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
@@ -560,6 +568,13 @@ def zakaz_kapremont(request, team_id):
                 )
                 team.eco_scores.score += 5 * int(material_quantity)
                 team.eco_scores.save()
+                EcoCompensationOperation.record(
+                    team=team,
+                    zakaz=None,
+                    eco_compensation=5 * int(material_quantity),
+                    operation_type='kapremont_refund',
+                    description=f'Начисление за списание материала {material_mtr.name} ({material_quantity} шт.)'
+                )
                 messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {material_quantity} получен.')
                 try:
                     #material = Material.objects.get(pk=stock_item.material.pk)

@@ -41,7 +41,7 @@
                                         <th scope="col">Действия</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="learning-zakazy-body">
                                     {% for item in zakazy %}
                                     <tr>
                                         <td>{{ item.team.name }}</td>
@@ -69,11 +69,70 @@
                             </table>
                         </div>
                     </div>
+                    <div class="mt-2 px-3 pb-3">
+                        <small class="text-muted" id="learning-zakazy-updated">Последнее обновление: сейчас</small>
+                    </div>
+                    <script>
+                        const learningZakazyUrl = '{% url "learning:check_new_learning_orders" %}';
+                            const learningZakazyBody = document.getElementById('learning-zakazy-body');
+                            const learningZakazyUpdated = document.getElementById('learning-zakazy-updated');
+
+                            function escapeHtml(text) {
+                                return String(text)
+                                    .replace(/&/g, '&amp;')
+                                    .replace(/</g, '&lt;')
+                                    .replace(/>/g, '&gt;')
+                                    .replace(/"/g, '&quot;')
+                                    .replace(/'/g, '&#039;');
+                            }
+
+                            function renderLearningZakazy(items) {
+                                if (!learningZakazyBody) return;
+                                if (!items.length) {
+                                    learningZakazyBody.innerHTML = `
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">Нет заказов на обучение.</td>
+                                        </tr>
+                                    `;
+                                    return;
+                                }
+
+                                learningZakazyBody.innerHTML = items.map(zakaz => `
+                                    <tr>
+                                        <td>${escapeHtml(zakaz.team_name)}</td>
+                                        <td>${zakaz.year}</td>
+                                        <td><span class="badge bg-secondary">${escapeHtml(zakaz.status)}</span></td>
+                                        <td>${escapeHtml(zakaz.description)}</td>
+                                        <td><a href="/learning/success_learning/${zakaz.id}/" class="btn btn-sm btn-outline-primary">Завершить обучение</a></td>
+                                    </tr>
+                                `).join('');
+                            }
+
+                            async function refreshLearningZakazy() {
+                                try {
+                                    const response = await fetch(learningZakazyUrl, {credentials: 'same-origin'});
+                                    if (!response.ok) return;
+                                    const data = await response.json();
+                                    renderLearningZakazy(data.zakazy || []);
+                                    if (learningZakazyUpdated) {
+                                        learningZakazyUpdated.textContent = `Последнее обновление: ${new Date().toLocaleTimeString('ru-RU')}`;
+                                    }
+                                } catch (error) {
+                                    console.error('Ошибка обновления заказов на обучение:', error);
+                                }
+                            }
+
+                            if (learningZakazyBody) {
+                                setInterval(refreshLearningZakazy, 20000);
+                                refreshLearningZakazy();
+                            }
+                        </script>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="row mt-4">
-            <div>
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8 mt-4">
                 {% if teams %}
                 <h2 class="mb-3">Ваши команды</h2>
                 <div class="list-group">

@@ -17,7 +17,11 @@
 
 <div class="container my-4">
   <h2 class="mb-4">Подрядчик</h2>
-  <a href="{% url 'contactor:create_zakaz_spg' %}" class="btn btn-primary btn-sm">SPG</a>
+  <div class="d-inline-block border rounded-3 bg-white shadow-sm p-2 mb-3">
+  <p class="mb-1">Создать заказ на:
+    <a href="{% url 'contactor:create_zakaz_spg' %}" class="btn btn-primary btn-sm rounded-pill px-3 py-2 text-uppercase fw-semibold">SPG</a>
+  </p>
+  </div>
   <div class="card">
     <div class="card-body">
       <h5 class="card-title">Список заказов на выдачу</h5>
@@ -34,24 +38,93 @@
                 <th>Действия</th>
               </tr>
             </thead>
-            <tbody>
-              {% for zakaz in zakazy %}
-              <tr>
-                <td>{{ zakaz.id }}</td>
-                <td>{{ zakaz.team.name }}</td>
-                <td>{% for item in zakazy_items %}
-                {% if item.zakaz.id == zakaz.id %}{{ item.material.name }}- {{ item.quantity|floatformat:0 }} шт.<br>{% endif %}{% endfor %}</td> 
-                <td>{{ zakaz.year }}</td>
-                <td>+{{ zakaz.total_eco_score }}</td>
-                <td>
-                <div class="d-flex flex-row gap-2">
-                  <a href="{% url 'contactor:shipment' zakaz.id %}" class="btn btn-success btn-sm">Выдать</a>
-                </div>
-                </td>
-              </tr>
-              {% endfor %}
+            <tbody id="contactor-zakazy-body">
+              {% if zakazy %}
+                {% for zakaz in zakazy %}
+                <tr>
+                  <td>{{ zakaz.id }}</td>
+                  <td>{{ zakaz.team.name }}</td>
+                  <td>{% for item in zakazy_items %}
+                  {% if item.zakaz.id == zakaz.id %}{{ item.material.name }}- {{ item.quantity|floatformat:0 }} шт.<br>{% endif %}{% endfor %}</td> 
+                  <td>{{ zakaz.year }}</td>
+                  <td>+{{ zakaz.total_eco_score }}</td>
+                  <td>
+                  <div class="d-flex flex-row gap-2">
+                    <a href="{% url 'contactor:shipment' zakaz.id %}" class="btn btn-success btn-sm">Выдать</a>
+                  </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-3">Заказы не найдены.</td>
+                </tr>
+              {% endif %}
             </tbody>
           </table>
+          <div class="mt-2">
+            <small class="text-muted" id="contactor-zakazy-updated">Последнее обновление: сейчас</small>
+          </div>
+          <script>
+            const contactorZakazyUrl = '{% url "contactor:check_new_contactor_orders" %}';
+            const contactorZakazyBody = document.getElementById('contactor-zakazy-body');
+            const contactorZakazyUpdated = document.getElementById('contactor-zakazy-updated');
+
+            function escapeHtml(text) {
+              return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            }
+
+            function renderContactorZakazy(items) {
+              if (!contactorZakazyBody) return;
+              if (!items.length) {
+                contactorZakazyBody.innerHTML = `
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-3">Заказы не найдены.</td>
+                  </tr>
+                `;
+                return;
+              }
+
+              contactorZakazyBody.innerHTML = items.map(zakaz => `
+                <tr>
+                  <td>${zakaz.id}</td>
+                  <td>${escapeHtml(zakaz.team_name)}</td>
+                  <td>${escapeHtml(zakaz.material)}</td>
+                  <td>${zakaz.year}</td>
+                  <td>+${zakaz.eco_score}</td>
+                  <td>
+                    <div class="d-flex flex-row gap-2">
+                      <a href="/contactor/shipment/${zakaz.id}/" class="btn btn-success btn-sm">Выдать</a>
+                    </div>
+                  </td>
+                </tr>
+              `).join('');
+            }
+
+            async function refreshContactorZakazy() {
+              try {
+                const response = await fetch(contactorZakazyUrl, {credentials: 'same-origin'});
+                if (!response.ok) return;
+                const data = await response.json();
+                renderContactorZakazy(data.zakazy || []);
+                if (contactorZakazyUpdated) {
+                  contactorZakazyUpdated.textContent = `Последнее обновление: ${new Date().toLocaleTimeString('ru-RU')}`;
+                }
+              } catch (error) {
+                console.error('Ошибка обновления заказов подрядчика:', error);
+              }
+            }
+
+            if (contactorZakazyBody) {
+              setInterval(refreshContactorZakazy, 20000);
+              refreshContactorZakazy();
+            }
+          </script>
         </div>
       {% else %}
         <p class="text-muted">Заказы не найдены.</p>

@@ -53,8 +53,12 @@
                 {% endfor %}
               </td>
               <td>
-                {% if zakaz.eco_compensations %}
-                  + {{ zakaz.eco_compensations.eco_compensation }} Эко очков{% if zakaz.eco_compensations.description %}{% endif %}
+                {% if zakaz.eco_compensations.exists %}
+                  {% for op in zakaz.eco_compensations.all %}
+                    + {{ op.eco_compensation }} Эко очков
+                    <small class="text-muted">({{ op.operation_type }}{% if op.description %}: {{ op.description }}{% endif %})</small>
+                    {% if not forloop.last %}<br>{% endif %}
+                  {% endfor %}
                 {% else %}
                   Компенсация не оформлена
                   <a href="{% url 'contactor:create_eco_compensation' zakaz.id %}" class="btn btn-sm btn-outline-primary ms-2">Оформить</a>
@@ -97,5 +101,34 @@
       {% endif %}
     </div>
   </div>
+</div>
+<div class="container my-4">
+  <h2>История изменения ЭКО-репутации</h2>
+  {% if history_operations %}
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Тип операции</th>
+            <th>Описание</th>
+            <th>Изменение очков</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for operation in history_operations %}
+            <tr>
+              <td>{{ operation.created_at|date:"d.m.Y H:i" }}</td>
+              <td>{{ operation.operation_type }}</td>
+              <td>{{ operation.description }}</td>
+              <td>{% if operation.change > 0 %}+{% endif %}{{ operation.change }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>История операций не найдена.</p>
+  {% endif %} 
 </div>
 {% endblock %}

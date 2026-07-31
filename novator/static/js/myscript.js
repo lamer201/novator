@@ -14,20 +14,38 @@ $(function() {
             }
         }).trigger('change');
     }
-
-    if ($('#id_auto').length) {
-        $('#id_auto').on('input change', function() {
-            var quantity = $(this).val();
-
-            if (quantity) {
-                $.get('/bank/check-total-price/52/' + quantity + '/', function(data) {
-                    $('#total-price').val(data.total_price);
-                }).fail(function() {
-                    $('#total-price').val('Ошибка загрузки');
-                });
-            } else {
-                $('#total-price').val('');
-            }
-        })
-    }
 });
+/* 
+$(function updateTotalPrice() {
+        var $form = $('form.needs-validation').first();
+        if (!$form.length) {
+            return;
+        }
+
+        $.ajax({
+            url: '/bank/compute-total-price/',
+            method: 'GET',
+            data: $form.serialize(),
+            cache: false,
+            success: function(data) {
+                var total = data.total_price;
+                if (total === null || total === undefined || total === '') {
+                    $('#total-price').val('');
+                } else {
+                    $('#total-price').val(parseFloat(total).toFixed(2));
+                }
+            },
+            error: function() {
+                $('#total-price').val('Ошибка загрузки');
+            }
+        });
+    });
+
+var $orderForm = $('form.needs-validation').first();
+if ($orderForm.length) {
+    $orderForm.on('input change', 'input, select', function() {
+        updateTotalPrice();
+    });
+    updateTotalPrice();
+} */
+

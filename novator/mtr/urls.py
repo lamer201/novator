@@ -5,6 +5,7 @@ app_name = 'mtr'
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('check-new-extraditions/', views.check_new_extraditions, name='check_new_extraditions'),
     path('extradition/', views.extraditions, name='extraditions'),
     path('extradition_detail/<int:pk>/', views.extradition_detail, name='extradition_detail'),
     path('sklad/', views.sklad, name='sklad'),

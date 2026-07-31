@@ -69,6 +69,56 @@ def check_total_price(request, material_id, quantity):
     except Material.DoesNotExist:
         return JsonResponse({'total_price': ''}, status=404)
 
+
+""" def compute_total_price_from_data(data):
+    koeff = 1.0
+    try:
+        koeff = float(data.get('koeff') or 1.0)
+    except (TypeError, ValueError):
+        koeff = 1.0
+
+    total_price = 0.0
+
+    material_id = data.get('material')
+    if material_id:
+        try:
+            material = Material.objects.get(pk=int(material_id))
+            quantity = float(data.get('quantity') or 1)
+            total_price += material.price * koeff * quantity
+        except (Material.DoesNotExist, ValueError, TypeError):
+            pass
+
+    for field, value in data.items():
+        if field in ('team', 'koeff', 'category', 'material', 'team_balance', 'csrfmiddlewaretoken'):
+            continue
+
+        if field in ('learn_les', 'learn_grs', 'learn_ks'):
+            if value in ('on', 'true', 'True', '1', True):
+                try:
+                    material = Material.objects.get(slug=field)
+                    total_price += material.price * koeff
+                except Material.DoesNotExist:
+                    pass
+            continue
+
+        try:
+            quantity = float(value)
+        except (TypeError, ValueError):
+            continue
+
+        if quantity <= 0:
+            continue
+
+        try:
+            material = Material.objects.get(slug=field)
+        except Material.DoesNotExist:
+            continue
+
+        total_price += material.price * koeff * quantity
+
+    return total_price
+ """
+
 def check_obuchenie(request, team_id):
     team = Team.objects.get(id=team_id)
     learn_ks = team.learn_ks

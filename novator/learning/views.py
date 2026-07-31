@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from bank.models import Zakaz, ZakazItem, Balance, HistoryOperation
 from main.models import Material, Status, Team
@@ -90,5 +91,23 @@ def create_premii(request, team_id):
     # Implementation for creating premii based on the team's achievements
     messages.success(request, f'Достижение успешно оформлено! Сумма {material.price} зачислена на баланс команды')
     return redirect('learning:team_detail', team_id=team.id)
+
+
+@login_required
+def check_new_learning_orders(request):
+    teams = Team.objects.filter(status=True, name__in=request.user.userprofile.teams.values_list('name', flat=True))
+    zakazy = Zakaz.objects.filter(category__slug='learning', status__pk=2, payment=True, team__in=teams).order_by('-id')[:50]
+    data = []
+    for zakaz in zakazy:
+        items = ZakazItem.objects.filter(zakaz=zakaz)
+        material_text = ', '.join(f"{item.material.name}-{int(item.quantity)} шт." for item in items)
+        data.append({
+            'id': zakaz.id,
+            'team_name': zakaz.team.name if zakaz.team else '-',
+            'year': zakaz.year,
+            'status': zakaz.status.name if zakaz.status else '',
+            'description': material_text,
+        })
+    return JsonResponse({'zakazy': data})
 
 

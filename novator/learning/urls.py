@@ -5,6 +5,7 @@ app_name = 'learning'
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('check-new-learning-orders/', views.check_new_learning_orders, name='check_new_learning_orders'),
     #path('zakaz_detail/<int:pk>/', views.zakaz_detail, name='zakaz_detail'),
     path('success_learning/<int:zakaz_id>/', views.success_learning, name='success_learning'),
     path('team_detail/<int:team_id>/', views.team_detail, name='team_detail'),

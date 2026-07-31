@@ -32,60 +32,140 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="m-0">Список заказов на выдачу</h2>
   </div>
-  {% if zakazy %}
-    <div class="table-responsive">
-      <table class="table table-hover">
-        <thead class="table-light">
-          <tr>
-            <th>#</th>
-            <th>Команда</th>
-            <th>Материал</th>
-            <th>Год</th>
-            <th>Км. газпровода</th>
-            <th>Всего очков экологии</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Команда</th>
+          <th>Материал</th>
+          <th>Год</th>
+          <th>Км. газпровода</th>
+          <th>Всего очков экологии</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody id="zakazy-body">
+        {% if zakazy %}
           {% for zakaz in zakazy %}
+            <tr>
+              <td>{{ zakaz.id }}</td>
+              <td>{{ zakaz.team.name }}</td>
+              <td>{% for item in zakazy_items %}
+              {% if item.zakaz.id == zakaz.id %}{{ item.material.name }}- {{ item.quantity|floatformat:0 }} шт.<br>{% endif %}{% endfor %}</td>
+              <td>{{ zakaz.year }}</td>
+              <td>{{ zakaz.total_km }} км.</td>
+              <td>-{{ zakaz.total_eco_score }}</td>
+              <td>
+                <div class="d-flex flex-row gap-2">
+                  <div class="btn-group" role="group">
+                    <a href="{% url 'mtr:extradition_detail' zakaz.id %}" class="btn btn-sm btn-primary">
+                      <i class="fas fa-eye"></i> Просмотр
+                    </a>
+                    {% for stock in team_stock %}
+                      {% if stock.zakaz.id == zakaz.id %}
+                        {% if stock.obuchenie == False %}
+                          <span class="badge bg-warning text-dark">Отсутствует обучение</span>
+                        {% elif stock.transport == False %}
+                          <span class="badge bg-danger">Не хватает транспорта</span>
+                        {% else %}
+                          <a href="{% url 'mtr:shipment' zakaz.id %}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> Выдать</a>
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
           <tr>
-            <td>{{ zakaz.id }}</td>
-            <td>{{ zakaz.team.name }}</td>
-            <td>{% for item in zakazy_items %}
-            {% if item.zakaz.id == zakaz.id %}{{ item.material.name }}- {{ item.quantity|floatformat:0 }} шт.<br>{% endif %}{% endfor %}</td> 
-            <td>{{ zakaz.year }}</td>
-            <td>{{ zakaz.total_km}} км.</td>
-            <td>-{{ zakaz.total_eco_score }}</td>
-            <td>
-            <div class="d-flex flex-row gap-2">
-              <div class="btn-group " role="group">
-                <a href="{% url 'mtr:extradition_detail' zakaz.id %}" class="btn btn-sm btn-primary">
+            <td colspan="7" class="text-center text-muted py-3">Заказов на выдачу нет.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  <div class="mt-2">
+    <small class="text-muted" id="zakazy-last-updated">Последнее обновление: сейчас</small>
+  </div>
+  <script>
+    const zakazyUrl = '{% url "mtr:check_new_extraditions" %}';
+    const zakazyBody = document.getElementById('zakazy-body');
+    const zakazyLastUpdated = document.getElementById('zakazy-last-updated');
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function renderZakazy(items) {
+      if (!zakazyBody) return;
+      if (!items.length) {
+        zakazyBody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center text-muted py-3">Заказов на выдачу нет.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      zakazyBody.innerHTML = items.map(zakaz => `
+        <tr>
+          <td>${zakaz.id}</td>
+          <td>${escapeHtml(zakaz.team_name)}</td>
+          <td>${escapeHtml(zakaz.material)}</td>
+          <td>${zakaz.year}</td>
+          <td>${zakaz.total_km} км.</td>
+          <td>${zakaz.total_eco_score < 0 ? zakaz.total_eco_score : '-' + zakaz.total_eco_score}</td>
+          <td>
+            <div class="d-flex flex-row gap-2 align-items-center">
+              <div class="btn-group" role="group">
+                <a href="{% url 'mtr:extradition_detail' 0 %}" class="btn btn-sm btn-primary" data-zakaz-id="${zakaz.id}">
                   <i class="fas fa-eye"></i> Просмотр
                 </a>
-                {% for stock in team_stock %}
-                {% if stock.zakaz.id == zakaz.id %}
-                {% if stock.obuchenie == False %}
-                Отсутвует обучение
-                {% elif stock.transport == False %}
-                Не хватает транспорта
-                {% else %}
-                <a href="{% url 'mtr:shipment' zakaz.id %}" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> Выдать</a>
-                {% endif %}
-                {% endif %}
-                {% endfor %}
+                ${zakaz.can_issue ? `
+                  <a href="/mtr/shipment/${zakaz.id}/" class="btn btn-sm btn-success"><i class="fas fa-plus"></i> Выдать</a>
+                ` : `
+                  <span class="badge ${zakaz.issue_reason === 'Отсутствует обучение' ? 'bg-warning text-dark' : 'bg-danger'}">
+                    ${escapeHtml(zakaz.issue_reason)}
+                  </span>
+                `}
               </div>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    
-  {% endif %}
-    {% if not zakazy %}
-    <p class="text-muted">Заказов на выдачу нет.</p>
-  {% endif %}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+
+      document.querySelectorAll('[data-zakaz-id]').forEach(link => {
+        const zakazId = link.getAttribute('data-zakaz-id');
+        link.href = `/mtr/extradition_detail/${zakazId}/`;
+      });
+    }
+
+    async function refreshZakazy() {
+      try {
+        const response = await fetch(zakazyUrl, { credentials: 'same-origin' });
+        if (!response.ok) return;
+        const data = await response.json();
+        renderZakazy(data.zakazy || []);
+        if (zakazyLastUpdated) {
+          zakazyLastUpdated.textContent = `Последнее обновление: ${new Date().toLocaleTimeString('ru-RU')}`;
+        }
+      } catch (error) {
+        console.error('Ошибка обновления заказов на выдачу:', error);
+      }
+    }
+
+    if (zakazyBody) {
+      setInterval(refreshZakazy, 20000);
+      refreshZakazy();
+    }
+  </script>
 
   
 

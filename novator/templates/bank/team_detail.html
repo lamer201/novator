@@ -25,7 +25,7 @@
 <a href="{% url 'bank:create_zakaz_one_item_team' team.pk %}?category=bank" class="btn btn-outline-secondary">Банковские операции</a>
 <a href="{% url 'bank:new_credit'%}?team={{team.pk}}" class="btn btn-outline-info">Новый кредит</a>
 <a href="{% url 'bank:new_premia'%}?team={{team.pk}}" class="btn btn-outline-warning">Начислить премию</a>
-<a href="{% url 'bank:create_zakaz_many_item_team' team.pk %}?category=kapremont" class="btn btn-outline-success">Капремонт</a>
+<a href="{% url 'bank:zakaz_kapremont' team.pk %}" class="btn btn-outline-success">Капремонт</a>
 </div>
 <div class="container my-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -86,7 +86,7 @@
 
             <div class="d-flex gap-2 mt-4">
               <a href="{% url 'bank:zakaz_list' %}?team={{team.pk}}" class="btn btn-outline-secondary">Смотреть заказы</a>
-              <a href="{% url 'bank:zakaz_kapremont' team.pk %}" class="btn btn-outline-primary">Списание материалов</a>
+              <a href="{% url 'bank:spisanie' team.pk %}" class="btn btn-outline-primary">Списание материалов</a>
               <a href="{% url 'bank:bank_list' %}" class="btn btn-link">К списку команд</a>
             </div>
           </div>

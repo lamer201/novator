@@ -44,7 +44,7 @@ def team_detail(request, team_id):
     zakazy = Zakaz.objects.filter(team=team, category__slug__in=['trubi','ks','grs'], status__pk__in=['3','5'])
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     stock = Stock.objects.filter(warehouse__team=team, material__category__slug='eco')
-    history_operations = HistoryOperation.objects.filter(team=team)
+    history_operations = HistoryOperation.objects.filter(team=team).order_by('-pk')
 
     return render(request, 'contactor/team_detail.html', {'team': team, 'zakazy': zakazy, 'zakazy_items': zakazy_items, 'stock': stock, 'history_operations': history_operations})
 

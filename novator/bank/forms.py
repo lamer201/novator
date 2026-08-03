@@ -139,7 +139,12 @@ class ZakazFormCredit(UserTeamFormMixin, forms.Form):
     team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
     amount = forms.CharField(label='Сумма кредита', required=True)
     #year = forms.IntegerField(label='Год кредита', required=True)
-    percent = forms.FloatField(label='Процентная ставка', required=True)
+    percent = forms.FloatField(
+        label='Процентная ставка',
+        required=True,
+        initial=35,
+        widget=forms.NumberInput(attrs={'readonly': 'readonly'})
+    )
 
     def clean_amount(self):
         raw_value = self.cleaned_data.get('amount')

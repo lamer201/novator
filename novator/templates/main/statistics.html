@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Полная статистика команд{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h2 class="mb-1 fw-bold">Полная статистика команд</h2>
+      <p class="text-muted mb-0">Актуальный обзор по результатам всех активных команд.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'main:control' %}" class="btn btn-outline-secondary">← К странице ведущего</a>
+      <a href="{% url 'main:next_year' %}" class="btn btn-outline-primary">Перевести год</a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+    <div class="card-body p-0">
+      <div class="bg-light px-4 py-3 border-bottom d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="mb-0">Рейтинг команд</h4>
+          <small class="text-muted">Сортировка по победным очкам</small>
+        </div>
+        <span class="badge bg-primary rounded-pill px-3 py-2">По итогам игры</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="min-width: 220px;">Команда</th>
+              <th>Баланс</th>
+              <th>Км труб</th>
+              <th>ГРС / Потребители</th>
+              <th>Экология</th>
+              <th>Победные</th>
+              <th>Достижения</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for stat in team_stats|dictsortreversed:"win_score" %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ stat.team.name }}</div>
+              </td>
+              <td><span class="fw-semibold">{{ stat.balance|floatformat:0|intcomma }} ₽</span></td>
+              <td>{{ stat.purchased_pipe_km|floatformat:0 }}</td>
+              <td>{{ stat.grs_count|floatformat:0 }} / {{ stat.consumers|floatformat:0 }}</td>
+              <td>{{ stat.eco_score|floatformat:0 }}</td>
+              <td><span class="fs-4 fw-bold text-dark">{{ stat.win_score|floatformat:2 }}</span></td>
+              <td>
+                {% if stat.achievements %}
+                <div class="d-flex flex-wrap gap-2">
+                  {% for achievement in stat.achievements %}
+                  <span>
+                    <p>{{ achievement.material_name }} · {{ achievement.ball_value }}</p>
+                  </span>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <span class="text-muted small">Нет достижений</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-muted text-center py-4">Нет активных команд.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="container my-4">
+    <h3>Остатки на складах</h3>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Материал</th>
+          <th>Количество</th>
+          <th>На складе команды</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stock in stock_by_skalad %}
+        <tr>
+          <td>{{ stock.material.name }}</td>
+          <td>{{ stock.quantity| floatformat:0 }}</td>
+          <td>{% if stock.warehouse.name %}{{ stock.warehouse.name }}{% else %}Склад{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p>Всего ГРС выдано: {{ stock_by_skalad_grs }}</p>
+  </div>
+</div>
+{% endblock %}

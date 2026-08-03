@@ -56,7 +56,6 @@
                 {% if zakaz.eco_compensations.exists %}
                   {% for op in zakaz.eco_compensations.all %}
                     + {{ op.eco_compensation }} Эко очков
-                    <small class="text-muted">({{ op.operation_type }}{% if op.description %}: {{ op.description }}{% endif %})</small>
                     {% if not forloop.last %}<br>{% endif %}
                   {% endfor %}
                 {% else %}
@@ -109,7 +108,7 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>Дата</th>
+            <th>Заказ</th>
             <th>Тип операции</th>
             <th>Описание</th>
             <th>Изменение очков</th>
@@ -118,7 +117,7 @@
         <tbody>
           {% for operation in history_operations %}
             <tr>
-              <td>{{ operation.created_at|date:"d.m.Y H:i" }}</td>
+              <td>{{ operation.zakaz.pk }}</td>
               <td>{{ operation.operation_type }}</td>
               <td>{{ operation.description }}</td>
               <td>{% if operation.change > 0 %}+{% endif %}{{ operation.change }}</td>

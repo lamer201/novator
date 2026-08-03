@@ -35,5 +35,6 @@ urlpatterns = [
     path('credit/new_credit/', views.zakaz_credit, name='new_credit'),
     path('premia/new_premia/', views.new_premia, name='new_premia'),
     path('zapusk_edit/', views.zapusk_edit, name='zapusk_edit'),
-    path('check-obuchenie/<int:team_id>/', views.check_obuchenie, name='check_obuchenie')
+    path('check-obuchenie/<int:team_id>/', views.check_obuchenie, name='check_obuchenie'),
+    path('spisanie/<int:team_id>/', views.spisanie, name='spisanie'),
 ]

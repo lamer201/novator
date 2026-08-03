@@ -11,5 +11,7 @@ urlpatterns = [
     path('next_year/', views.next_year, name='next_year'),
     path('end_game/', views.end_game_func, name='end_game_func'),
     path('control/', views.control, name='control'),
+    path('statistics/', views.statistics_page, name='statistics_page'),
+    path('statistics-presentation/', views.presentation_statistics_page, name='presentation_statistics_page'),
 
 ]

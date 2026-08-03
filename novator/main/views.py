@@ -55,7 +55,7 @@ def end_game_func(request):
     return render(request, 'main/end_game.html')
 
 
-def control(request):
+def build_statistics_context():
     teams = Team.objects.filter(status=True).order_by('pk')
     stock = Stock.objects.filter(warehouse__team__in=teams)
     sklad = Sklad.objects.filter(is_active=True, team=None)
@@ -69,6 +69,7 @@ def control(request):
     win_score = []
     total_potrebiteli = []
     win_score_map = {}
+    team_stats = []
     for team in teams:
         total_potrebitel = 0
         team_stock = Stock.objects.filter(warehouse__team=team)
@@ -83,17 +84,59 @@ def control(request):
         teams_items.append({'team': team, 'items_count': total * 20})
         teams_grs.append({'team': team, 'total_grs': total_grs})
 
+        balance = getattr(team, 'balance', None)
+        achievements = []
+        for item in zakaz_items_premii:
+            if item.zakaz.team_id != team.pk:
+                continue
+            ball_value = ''
+            for ball in bally:
+                if ball.material_id == item.material_id:
+                    ball_value = ball.property_value
+                    break
+            achievements.append({'material_name': item.material.name, 'ball_value': ball_value})
+
+        team_stats.append({
+            'team': team,
+            'balance': balance.money if balance is not None else 0,
+            'purchased_pipe_km': total * 20,
+            'grs_count': total_grs,
+            'consumers': total_potrebitel,
+            'achievements': achievements,
+            'eco_score': getattr(getattr(team, 'eco_scores', None), 'score', 0),
+            'win_score': score,
+        })
+
     teams_sorted = sorted(teams, key=lambda team: win_score_map.get(team.pk, 0), reverse=True)
 
-    return render(request, 'main/control.html', {'teams': teams,
-                                                  'teams_sorted': teams_sorted,
-                                                  'sklad': sklad,
-                                                  'stock': stock,
-                                                  'stock_by_skalad': stock_by_skalad,
-                                                  'teams_items': teams_items,
-                                                  'teams_grs': teams_grs,
-                                                  'stock_by_skalad_grs': stock_by_skalad_grs,
-                                                  'win_score': win_score,
-                                                  'zakaz_items_premii': zakaz_items_premii,
-                                                  'bally': bally,
-                                                  'total_potrebiteli': total_potrebiteli})
+    return {
+        'teams': teams,
+        'teams_sorted': teams_sorted,
+        'sklad': sklad,
+        'stock': stock,
+        'stock_by_skalad': stock_by_skalad,
+        'teams_items': teams_items,
+        'teams_grs': teams_grs,
+        'stock_by_skalad_grs': stock_by_skalad_grs,
+        'win_score': win_score,
+        'zakaz_items_premii': zakaz_items_premii,
+        'bally': bally,
+        'total_potrebiteli': total_potrebiteli,
+        'team_stats': team_stats,
+        'year': config.YEAR,
+    }
+
+
+@login_required
+def control(request):
+    return render(request, 'main/control.html', build_statistics_context())
+
+
+@login_required
+def statistics_page(request):
+    return render(request, 'main/statistics.html', build_statistics_context())
+
+
+@login_required
+def presentation_statistics_page(request):
+    return render(request, 'main/presentation_statistics.html', build_statistics_context())

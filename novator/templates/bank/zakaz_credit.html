@@ -83,14 +83,45 @@
 <script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
 <script>
     const mask = new Inputmask({
-        alias: 'numeric',           // Используем числовой алиас
-        groupSeparator: ' ',        // Разделитель тысяч (пробел)
-        digits: 0,                  // Количество знаков после запятой (0 — только целые)
+        alias: 'numeric',
+        groupSeparator: ' ',
+        digits: 0,
         autoGroup: true,
-        groupSize: 3,          // Автоматически группировать разряды
-        placeholder: '0',           // Плейсхолдер для пустого поля
-        rightAlign: false           // Выравнивание по левому краю
+        groupSize: 3,
+        placeholder: '0',
+        rightAlign: false
     });
     mask.mask(document.getElementById('id_amount'));
+
+    const amountInput = document.getElementById('id_amount');
+    const percentInput = document.getElementById('id_percent');
+
+    function calculatePercent(value) {
+        const amount = parseFloat(String(value).replace(/\s+/g, '').replace(/,/g, '')) || 0;
+
+        if (amount >= 3000000) {
+            return 20;
+        }
+        if (amount >= 2000000) {
+            return 25;
+        }
+        if (amount >= 1000000) {
+            return 30;
+        }
+        return 35;
+    }
+
+    function updatePercent() {
+        if (percentInput) {
+            percentInput.value = calculatePercent(amountInput.value);
+        }
+    }
+
+    if (amountInput && percentInput) {
+        amountInput.addEventListener('input', updatePercent);
+        amountInput.addEventListener('change', updatePercent);
+        amountInput.addEventListener('keyup', updatePercent);
+        updatePercent();
+    }
 </script>
 {% endblock %}

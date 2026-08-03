@@ -383,16 +383,17 @@ def zakaz_otmena(request, zakaz_id):
     if request.method == 'POST':
         items = ZakazItem.objects.filter(zakaz=zakaz)
         total_refund = sum(i.price * i.quantity for i in items)
-
+        balance = Balance.objects.get(team=zakaz.team)
         if zakaz.payment:
-            try:
-                balance = Balance.objects.get(team=zakaz.team)
+            if zakaz.category.slug == 'premii':
+                balance.money-= total_refund
+                history(operation_type='bebit', zakaz=zakaz, price=total_refund, balance=balance, description=f'Возврат средств после отмены заказа {zakaz.pk}')
+            else:
                 balance.money += total_refund
-                balance.save()
                 history(operation_type='credit', zakaz=zakaz, price=total_refund, balance=balance, description=f'Возврат средств после отмены заказа {zakaz.pk}')
-            except Balance.DoesNotExist:
-                messages.error(request, 'Баланс команды не найден. Отмена заказа отменена.')
-                return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
+            balance.save()
+            history(operation_type='credit', zakaz=zakaz, price=total_refund, balance=balance, description=f'Возврат средств после отмены заказа {zakaz.pk}')
+            return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
 
         zakaz.status = Status.objects.get(name='Отменён')
         zakaz.save()

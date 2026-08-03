@@ -223,8 +223,8 @@ class ZakazFormTrubTeam(forms.Form):
 
 class ZakazFormBankTeam(forms.Form):
     team = forms.CharField(widget=forms.HiddenInput(), initial='')
-    team_balance = forms.IntegerField(label='Узнать баланс', required=False)
     material = forms.ChoiceField(label='Банковская операция', choices=get_bank_choices(), widget=forms.Select(attrs={'id': 'bank-select'}) )
+    koeff = forms.ChoiceField(label='Коэффициент', choices=KOEFF_CHOICES, required=False)
     category = forms.CharField(widget=forms.HiddenInput(), initial='bank_operations')
 
     def __init__(self, *args, **kwargs):

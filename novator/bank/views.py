@@ -169,7 +169,7 @@ def create_zakaz_obuchenie(request):
     else:
         form = ZakazFormObuchenie(user=request.user)
 
-    return render(request, 'bank/zakaz.html', {'form': form})
+    return render(request, 'bank/zakaz_obuchenie.html', {'form': form})
 
 
 @login_required

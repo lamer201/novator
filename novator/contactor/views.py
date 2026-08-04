@@ -108,7 +108,7 @@ def shipment(request, pk):
     team.eco_scores.score += zakaz.total_eco_score
     team.eco_scores.save()
     zakaz.issued = True
-    zakaz.status = Status.objects.get(pk=3)
+    zakaz.status = Status.objects.get(pk=5)  # Измените на нужный статус
     zakaz.save()
     EcoCompensationOperation.record(
         team=team,

@@ -175,7 +175,7 @@ def make_zakaz_many_item(form):
     balance.money = new_balance
     balance.save()
     history(operation_type='debit', zakaz=zakaz, price=test_balance, balance=balance, description=f'Оплата заказа {zakaz.pk}')
-    return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)  # Replace with your success URL
+    return zakaz  # Replace with your success URL
 
 @transaction.atomic
 def make_zakaz_one_item(form):
@@ -225,7 +225,7 @@ def make_zakaz_one_item(form):
     balance.money = new_balance
     balance.save()
     history(operation_type='debit', zakaz=zakaz, price=price, balance=balance, description=f'Оплата заказа {zakaz.pk}')
-    return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)  # Replace with your success URL
+    return zakaz  # Replace with your success URL
 
 
 def make_zakaz_obuchenie(form):
@@ -328,7 +328,7 @@ def make_zakaz_obuchenie(form):
     new_balance = balance.money - total_price
     balance.money = new_balance
     balance.save()
-    return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
+    return zakaz  # Replace with your success URL
 
 def give_money(team):
     balance = Balance.objects.get(team=team)

@@ -74,7 +74,7 @@ def create_premii(request, team_id):
                 team=team,
                 category=material.category,
                 status=Status.objects.get(name='Завершен'),
-                payment=False,
+                payment=True,
                 year=config.YEAR
             )
             ZakazItem.objects.create(

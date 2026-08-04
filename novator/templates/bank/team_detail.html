@@ -99,15 +99,15 @@
                   <table class="table table-sm table-striped">
                     <thead>
                       <tr>
-                        <th>Год</th>
-                        <th class="text-end">Сумма</th>
+                        <th>Сумма</th>
+                        <th class="text-end">Остаток</th>
                         <th class="text-end">Статус</th>
                       </tr>
                     </thead>
                     <tbody>
           {% for credit in credits %}
             <tr class="clickable-row" data-href="{% url 'bank:credit_detail' credit.pk %}">
-              <td>{{ credit.year }}</td>
+              <td>{{ credit.amount }}</td>
               <td class="text-end">{{ credit.remains }}</td>
               <td class="text-end">{{ credit.status }}</td>
             </tr>
@@ -130,12 +130,12 @@
                       <tr>
                         <th>ID заказа</th>
                         <th>Материал</th>
-                        <th>Год</th>
+                        <th>Год покупки</th>
+                        <th>Год запуска</th>
                         <th class="text-end">Номер договора</th>
                         <th class="text-end">Коэффициент прибыли</th>
                         <th class="text-end">Базовая прибыль</th>
                         <th class="text-end">Итоговая прибыль</th>
-                        <th class="text-end">Действия</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -144,29 +144,11 @@
                           <td>{{ obj.zakaz.id }}</td>
                           <td>{{ obj.material.name }}</td>
                           <td>{{ obj.zakaz.year }}</td>
+                          <td>{{ obj.start_year }}</td>
                           <td class="text-end">{{ obj.zakaz.description }}</td>
                           <td class="text-end">{{ obj.profit_koeff }}</td>
                           <td class="text-end">{{ obj.profit_val|floatformat:0|intcomma }}</td>
                           <td class="text-end">{{ obj.calculate_profit|floatformat:0|intcomma }}</td>
-                          <td class="text-end">
-                          <form method="post" action="{% url 'bank:zapusk_edit' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="zakaz_item" value="{{ obj.pk }}">
-                            <select name="koeff_val" class="form-select form-select-sm d-inline w-auto">
-                              <option value="0.1">0.1</option>
-                              <option value="0.2">0.2</option>
-                              <option value="0.3">0.3</option>
-                              <option value="0.4">0.4</option>
-                              <option value="0.5">0.5</option>
-                              <option value="0.6">0.6</option>
-                              <option value="0.7">0.7</option>
-                              <option value="0.8">0.8</option>
-                              <option value="0.9">0.9</option>
-                              <option value="1.0" selected>1.0</option>
-                            </select>
-                            <button type="submit" class="btn btn-sm btn-danger">Изменить</button>
-                          </form>
-                          </td>
                         </tr>
                       {% endfor %}
                     </tbody>

@@ -2,6 +2,7 @@ from django.shortcuts import get_list_or_404, get_object_or_404, render, redirec
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db import transaction
@@ -101,7 +102,8 @@ def create_zakaz_many_item_team(request, team_id):
             if get_sum(form) > balance.money:
                 messages.error(request, 'Недостаточно средств на балансе для создания заказа.')
                 return redirect('bank:team_detail', team_id=team_id)
-            return make_zakaz_many_item(form)
+            zakaz = make_zakaz_many_item(form)
+            return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
     else:
         form = type_form(team_id=team_id)
         team_balance = get_object_or_404(Balance, team__pk=team_id)
@@ -120,7 +122,8 @@ def create_zakaz_one_item_team(request, team_id):
     if request.method == 'POST':
         form = type_form(request.POST)
         if form.is_valid():
-            return make_zakaz_one_item(form)
+            zakaz = make_zakaz_one_item(form)
+            return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
     else:
         form = type_form(team_id=team_id)
         team_balance = get_object_or_404(Balance, team__pk=team_id)
@@ -145,7 +148,8 @@ def create_zakaz_one_item(request):
     if request.method == 'POST':
         form = type_form(request.POST, user=request.user)
         if form.is_valid():
-            return make_zakaz_one_item(form)
+            zakaz = make_zakaz_one_item(form)
+            return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
     else:
         form = type_form(user=request.user)
 
@@ -160,7 +164,8 @@ def create_zakaz_obuchenie(request):
             if not validate_learning_selection(form):
                 messages.error(request, 'Выберите хотя бы один вид обучения.')
                 return redirect('bank:bank_list')
-            return make_zakaz_obuchenie(form)
+            zakaz = make_zakaz_obuchenie(form)
+            return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
     else:
         form = ZakazFormObuchenie(user=request.user)
 
@@ -175,7 +180,8 @@ def create_zakaz_obuchenie_team(request, team_id):
             if not validate_learning_selection(form):
                 messages.error(request, 'Выберите хотя бы один вид обучения.')
                 return redirect('bank:team_detail', team_id=team_id)
-            return make_zakaz_obuchenie(form)
+            zakaz = make_zakaz_obuchenie(form)
+            return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
     else:
         form = ZakazFormObuchenieTeam(team_id=team_id)
 
@@ -387,21 +393,21 @@ def zakaz_otmena(request, zakaz_id):
         if zakaz.payment:
             if zakaz.category.slug == 'premii':
                 balance.money-= total_refund
-                history(operation_type='bebit', zakaz=zakaz, price=total_refund, balance=balance, description=f'Возврат средств после отмены заказа {zakaz.pk}')
+                history(operation_type='debit', zakaz=zakaz, price=total_refund, balance=balance, description=f'Возврат средств после отмены заказа {zakaz.pk}')
             else:
                 balance.money += total_refund
                 history(operation_type='credit', zakaz=zakaz, price=total_refund, balance=balance, description=f'Возврат средств после отмены заказа {zakaz.pk}')
             balance.save()
-            history(operation_type='credit', zakaz=zakaz, price=total_refund, balance=balance, description=f'Возврат средств после отмены заказа {zakaz.pk}')
-            return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
-
         zakaz.status = Status.objects.get(name='Отменён')
         zakaz.save()
         if zakaz.payment:
-            messages.success(request, f'Заказ #{zakaz_id} отменён и сумма {total_refund} возвращена на баланс.')
+            if zakaz.category.slug == 'premii':
+                messages.success(request, f'Заказ #{zakaz_id} отменён и сумма {total_refund} списана с баланса.')
+            else:
+                messages.success(request, f'Заказ #{zakaz_id} отменён и сумма {total_refund} возвращена на баланс.')
         else:
             messages.success(request, f'Заказ #{zakaz_id} отменён.')
-        return redirect('bank:zakaz_list')
+        return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
 
     return render(request, 'bank/zakaz_confirm_cancel.html', {'zakaz': zakaz})
 
@@ -570,8 +576,8 @@ def zakaz_kapremont(request, team_id):
                 if order_total > balance.money:
                     messages.error(request, 'Недостаточно средств на балансе для создания заказа на капремонт.')
                     return redirect('bank:zakaz_kapremont', team_id=team_id)
-                make_zakaz_many_item(form)
-                messages.success(request, 'Создан новый заказ на капремонт.')
+                zakaz = make_zakaz_many_item(form)
+                messages.success(request, f'Создан новый заказ на капремонт.')
 
         selected_removals = []
         for key, value in data.items():
@@ -591,30 +597,33 @@ def zakaz_kapremont(request, team_id):
             messages.error(request, 'Вы не указали ни одного материала для списания и не указали позиции для нового заказа. Пожалуйста, проверьте форму.')
             return redirect('bank:zakaz_kapremont', team_id=team_id)
 
-        for material_id, quantity in selected_removals:
-            stock_item = Stock.objects.get(pk=material_id)
-            material_mtr = Material.objects.get(pk=stock_item.material.pk)
-            shipment = Shipment(
-                from_warehouse=stock_item.warehouse,
-                to_warehouse=Sklad.objects.get(slug=sklad),
-                material=material_mtr,
-                quantity=quantity,
-                description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при списании'
-            )
-            team.eco_scores.score += 5 * quantity
-            team.eco_scores.save()
-            eco_history(operation_type='kapremont_refund', team=team, zakaz=None, eco_compensation=5 * quantity, description=f'Начисление за списание материала {material_mtr.name} ({quantity} шт.)')
-            messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {quantity} получен.')
-            try:
-                if stock_item.quantity >= quantity:
-                    shipment.perform_shipment()
-                    messages.success(request, f'Материал "{material_mtr.name}" в количестве {quantity} успешно удалён со склада команды и возвращён на склад.')
-                else:
-                    messages.error(request, f'Недостаточно материала "{stock_item.material.name}" на складе для удаления.')
+        for key, value in data.items():
+            if str(key).startswith('remove_') and value == 'on':
+                material_id = key.split('_')[1]
+                stock_item = Stock.objects.get(pk=material_id)
+                material_quantity = data.get(f'remove_count_{material_id}', 0)
+                material_mtr = Material.objects.get(pk=stock_item.material.pk)
+                shipment = Shipment(
+                    from_warehouse=stock_item.warehouse,
+                    to_warehouse=Sklad.objects.get(slug=sklad),
+                    material=material_mtr,
+                    quantity=material_quantity,
+                    description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при списании'
+                )
+                team.eco_scores.score += 5 * int(material_quantity)
+                team.eco_scores.save()
+                eco_history(operation_type='kapremont_refund', team=team, zakaz=None, eco_compensation=5 * int(material_quantity), description=f'Начисление за списание материала {material_mtr.name} ({material_quantity} шт.)')
+                messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {material_quantity} получен.')
+                try:
+                    if stock_item.quantity >= int(material_quantity):
+                        shipment.perform_shipment()
+                        messages.success(request, f'Материал "{material_mtr.name}" в количестве {material_quantity} успешно удалён со склада команды и возвращён на склад.')
+                    else:
+                        messages.error(request, f'Недостаточно материала "{stock_item.material.name}" на складе для удаления.')
+                        return redirect('bank:zakaz_kapremont', team_id=team_id)
+                except (Material.DoesNotExist, Stock.DoesNotExist):
+                    messages.error(request, 'Материал не найден на складе. Пожалуйста, проверьте данные и попробуйте снова.')
                     return redirect('bank:zakaz_kapremont', team_id=team_id)
-            except (Material.DoesNotExist, Stock.DoesNotExist):
-                messages.error(request, 'Материал не найден на складе. Пожалуйста, проверьте данные и попробуйте снова.')
-                return redirect('bank:zakaz_kapremont', team_id=team_id)
         return redirect('bank:zakaz_kapremont', team_id=team_id)
 
     return render(request, 'bank/zakaz_kapremont.html', {'team': team, 'items': items, 'materials': materials, 'balance': balance, 'form': form})
@@ -777,33 +786,48 @@ def spisanie(request, team_id):
             sklad = 'sklad-2'
         else:
             sklad = 'sklad-3'
+        selected_removals = []
         for key, value in data.items():
-            if str(key).startswith('remove_') and value == 'on':
-                material_id = key.split('_')[1]
-                stock_item = Stock.objects.get(pk=material_id)
-                material_quantity = data.get(f'remove_count_{material_id}', 0)
-                material_mtr = Material.objects.get(pk=stock_item.material.pk)
-                shipment = Shipment(
-                    from_warehouse=stock_item.warehouse,
-                    to_warehouse=Sklad.objects.get(slug=sklad),
-                    material=material_mtr,
-                    quantity=material_quantity,
-                    description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при списании'
-                )
-                team.eco_scores.score += 5 * int(material_quantity)
-                team.eco_scores.save()
-                eco_history(operation_type='kapremont_refund', team=team, zakaz=None, eco_compensation=5 * int(material_quantity), description=f'Начисление за списание материала {material_mtr.name} ({material_quantity} шт.)')
-                messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {material_quantity} получен.')
+            if str(key).startswith('remove_count_'):
+                raw_value = (value or '').strip()
+                if not raw_value:
+                    continue
                 try:
-                    if stock_item.quantity >= int(material_quantity):
-                        shipment.perform_shipment()
-                        messages.success(request, f'Материал "{material_mtr.name}" в количестве {material_quantity} успешно удалён со склада команды и возвращён на склад.')
-                    else:
-                        messages.error(request, f'Недостаточно материала "{stock_item.material.name}" на складе для удаления.')
-                        return redirect('bank:spisanie', team_id=team_id)
-                except (Material.DoesNotExist, Stock.DoesNotExist):
-                    messages.error(request, 'Материал не найден на складе. Пожалуйста, проверьте данные и попробуйте снова.')
+                    quantity = int(raw_value)
+                except ValueError:
+                    continue
+                if quantity > 0:
+                    material_id = key.split('_')[-1]
+                    selected_removals.append((material_id, quantity))
+
+        if not selected_removals:
+            messages.error(request, 'Вы не указали количество для списания.')
+            return redirect('bank:spisanie', team_id=team_id)
+
+        for material_id, quantity in selected_removals:
+            stock_item = Stock.objects.get(pk=material_id)
+            material_mtr = Material.objects.get(pk=stock_item.material.pk)
+            shipment = Shipment(
+                from_warehouse=stock_item.warehouse,
+                to_warehouse=Sklad.objects.get(slug=sklad),
+                material=material_mtr,
+                quantity=quantity,
+                description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при списании'
+            )
+            team.eco_scores.score += 5 * quantity
+            team.eco_scores.save()
+            eco_history(operation_type='kapremont_refund', team=team, zakaz=None, eco_compensation=5 * quantity, description=f'Начисление {5 * quantity} Эко-баллов за списание материала {material_mtr.name} ({quantity} шт.) сейчас {team.eco_scores.score}')
+            messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {quantity} получен.')
+            try:
+                if stock_item.quantity >= quantity:
+                    shipment.perform_shipment()
+                    messages.success(request, f'Материал "{material_mtr.name}" в количестве {quantity} успешно удалён со склада команды и возвращён на склад.')
+                else:
+                    messages.error(request, f'Недостаточно материала "{stock_item.material.name}" на складе для удаления.')
                     return redirect('bank:spisanie', team_id=team_id)
+            except (Material.DoesNotExist, Stock.DoesNotExist):
+                messages.error(request, 'Материал не найден на складе. Пожалуйста, проверьте данные и попробуйте снова.')
+                return redirect('bank:spisanie', team_id=team_id)
         return redirect('bank:spisanie', team_id=team_id)
 
-    return render(request, 'bank:spisanie', {'materials': materials})
+    return render(request, 'bank/spisanie.html', {'materials': materials, 'team': team})

@@ -573,38 +573,48 @@ def zakaz_kapremont(request, team_id):
                 make_zakaz_many_item(form)
                 messages.success(request, 'Создан новый заказ на капремонт.')
 
-        has_selected_removals = any(str(key).startswith('remove_') and value == 'on' for key, value in data.items())
-        if not has_selected_removals and not has_order_items:
-            messages.error(request, 'Вы не выбрали ни одного материала для списания и не указали позиции для нового заказа. Пожалуйста, проверьте форму.')
+        selected_removals = []
+        for key, value in data.items():
+            if str(key).startswith('remove_count_'):
+                raw_value = (value or '').strip()
+                if not raw_value:
+                    continue
+                try:
+                    quantity = int(raw_value)
+                except ValueError:
+                    continue
+                if quantity > 0:
+                    material_id = key.split('_')[-1]
+                    selected_removals.append((material_id, quantity))
+
+        if not selected_removals and not has_order_items:
+            messages.error(request, 'Вы не указали ни одного материала для списания и не указали позиции для нового заказа. Пожалуйста, проверьте форму.')
             return redirect('bank:zakaz_kapremont', team_id=team_id)
 
-        for key, value in data.items():
-            if str(key).startswith('remove_') and value == 'on':
-                material_id = key.split('_')[1]
-                stock_item = Stock.objects.get(pk=material_id)
-                material_quantity = data.get(f'remove_count_{material_id}', 0)
-                material_mtr = Material.objects.get(pk=stock_item.material.pk)
-                shipment = Shipment(
-                    from_warehouse=stock_item.warehouse,
-                    to_warehouse=Sklad.objects.get(slug=sklad),
-                    material=material_mtr,
-                    quantity=material_quantity,
-                    description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при списании'
-                )
-                team.eco_scores.score += 5 * int(material_quantity)
-                team.eco_scores.save()
-                eco_history(operation_type='kapremont_refund', team=team, zakaz=None, eco_compensation=5 * int(material_quantity), description=f'Начисление за списание материала {material_mtr.name} ({material_quantity} шт.)')
-                messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {material_quantity} получен.')
-                try:
-                    if stock_item.quantity >= int(material_quantity):
-                        shipment.perform_shipment()
-                        messages.success(request, f'Материал "{material_mtr.name}" в количестве {material_quantity} успешно удалён со склада команды и возвращён на склад.')
-                    else:
-                        messages.error(request, f'Недостаточно материала "{stock_item.material.name}" на складе для удаления.')
-                        return redirect('bank:zakaz_kapremont', team_id=team_id)
-                except (Material.DoesNotExist, Stock.DoesNotExist):
-                    messages.error(request, 'Материал не найден на складе. Пожалуйста, проверьте данные и попробуйте снова.')
+        for material_id, quantity in selected_removals:
+            stock_item = Stock.objects.get(pk=material_id)
+            material_mtr = Material.objects.get(pk=stock_item.material.pk)
+            shipment = Shipment(
+                from_warehouse=stock_item.warehouse,
+                to_warehouse=Sklad.objects.get(slug=sklad),
+                material=material_mtr,
+                quantity=quantity,
+                description=f'Возврат материала "{material_mtr.name}" от команды "{stock_item.warehouse.team.name}" при списании'
+            )
+            team.eco_scores.score += 5 * quantity
+            team.eco_scores.save()
+            eco_history(operation_type='kapremont_refund', team=team, zakaz=None, eco_compensation=5 * quantity, description=f'Начисление за списание материала {material_mtr.name} ({quantity} шт.)')
+            messages.info(request, f'Запрос на удаление материала ID {material_id} в количестве {quantity} получен.')
+            try:
+                if stock_item.quantity >= quantity:
+                    shipment.perform_shipment()
+                    messages.success(request, f'Материал "{material_mtr.name}" в количестве {quantity} успешно удалён со склада команды и возвращён на склад.')
+                else:
+                    messages.error(request, f'Недостаточно материала "{stock_item.material.name}" на складе для удаления.')
                     return redirect('bank:zakaz_kapremont', team_id=team_id)
+            except (Material.DoesNotExist, Stock.DoesNotExist):
+                messages.error(request, 'Материал не найден на складе. Пожалуйста, проверьте данные и попробуйте снова.')
+                return redirect('bank:zakaz_kapremont', team_id=team_id)
         return redirect('bank:zakaz_kapremont', team_id=team_id)
 
     return render(request, 'bank/zakaz_kapremont.html', {'team': team, 'items': items, 'materials': materials, 'balance': balance, 'form': form})

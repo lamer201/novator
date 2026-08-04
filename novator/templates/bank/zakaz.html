@@ -53,4 +53,16 @@
 
 </div>
 <script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
+<script>
+    const mask = new Inputmask({
+        alias: 'numeric',
+        groupSeparator: ' ',
+        digits: 0,
+        autoGroup: true,
+        groupSize: 3,
+        placeholder: '0',
+        rightAlign: false
+    });
+    mask.mask(document.getElementById('myText'));
+    </script>
 {% endblock %}

@@ -40,11 +40,11 @@
                 </td>
                 <td class="px-4 py-3">
                   {% if stat.achievements %}
-                  <div class="d-flex flex-wrap gap-2">
+                  <div class="gap-2">
                     {% for achievement in stat.achievements %}
-                    <span class="badge rounded-pill bg-light text-dark px-3 py-2 fs-6">
+                    <span class="badge rounded-pill bg-light text-dark fs-6">
                       {{ achievement.material_name }} · {{ achievement.ball_value }}
-                    </span>
+                    </span></br>
                     {% endfor %}
                   </div>
                   {% else %}

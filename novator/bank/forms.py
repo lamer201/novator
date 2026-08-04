@@ -77,7 +77,7 @@ class ZakazFormTrub(UserTeamFormMixin, forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['team'].widget.attrs['id'] = 'team_select'
+        self.fields['team'].widget.attrs['id'] = 'team-select'
     
 
 

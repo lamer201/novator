@@ -21,7 +21,7 @@ def get_zakaz_many_item_form_class(category, team=False):
     category = (category or '').lower()
     forms_map = {
         'auto': ZakazFormAutoTeam if team else ZakazFormAuto,
-        'obuchenie': ZakazFormObuchenieTeam if team else ZakazFormObuchenie,
+        #'obuchenie': ZakazFormObuchenieTeam if team else ZakazFormObuchenie,
         'truba': ZakazFormTrubTeam if team else ZakazFormTrub,
         'kapremont': KapremontFormTeam if team else KapremontForm,
         
@@ -59,6 +59,15 @@ def parse_masked_number(value):
         return None
 
 
+def check_credit_team(request, team_id):
+    try:
+        credits = Credit.objects.filter(team_id=team_id)
+        total = sum(credit.amount for credit in credits)
+    except Exception:
+        total = 0
+    return JsonResponse({'text': total})
+
+
 @login_required
 def zakaz_issued(request, zakaz_id):
     zakaz = get_object_or_404(Zakaz, pk=zakaz_id)
@@ -74,6 +83,7 @@ def create_zakaz_many_item(request):
         messages.error(request, 'Неверная категория заказа.')
         return redirect('bank:bank_list')
 
+    balance = None
     if request.method == 'POST':
         form = type_form(request.POST, user=request.user)
         if form.is_valid():
@@ -81,11 +91,26 @@ def create_zakaz_many_item(request):
             if get_sum(form) > balance.money:
                 messages.error(request, 'Недостаточно средств на балансе для создания заказа.')
                 return redirect('bank:bank_list')
-            return make_zakaz_many_item(form)
+            zakaz = make_zakaz_many_item(form)
+            return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
     else:
         form = type_form(user=request.user)
 
-    return render(request, 'bank/zakaz.html', {'form': form})
+    if balance is None and request.method == 'GET':
+        selected_team_id = request.GET.get('team')
+        if selected_team_id:
+            try:
+                balance = Balance.objects.get(team__pk=selected_team_id)
+            except Balance.DoesNotExist:
+                balance = None
+        elif form.fields.get('team') and form.fields['team'].choices:
+            first_choice = form.fields['team'].choices[0][0]
+            try:
+                balance = Balance.objects.get(team__pk=first_choice)
+            except Balance.DoesNotExist:
+                balance = None
+
+    return render(request, 'bank/zakaz.html', {'form': form, 'balance': balance})
 
 @login_required
 def create_zakaz_many_item_team(request, team_id):
@@ -145,6 +170,7 @@ def create_zakaz_one_item(request):
         messages.error(request, 'Неверная категория заказа.')
         return redirect('bank:bank_list')
 
+    balance = None
     if request.method == 'POST':
         form = type_form(request.POST, user=request.user)
         if form.is_valid():
@@ -153,7 +179,21 @@ def create_zakaz_one_item(request):
     else:
         form = type_form(user=request.user)
 
-    return render(request, 'bank/zakaz.html', {'form': form})
+    if balance is None and request.method == 'GET':
+        selected_team_id = request.GET.get('team')
+        if selected_team_id:
+            try:
+                balance = Balance.objects.get(team__pk=selected_team_id)
+            except Balance.DoesNotExist:
+                balance = None
+        elif form.fields.get('team') and form.fields['team'].choices:
+            first_choice = form.fields['team'].choices[0][0]
+            try:
+                balance = Balance.objects.get(team__pk=first_choice)
+            except Balance.DoesNotExist:
+                balance = None
+
+    return render(request, 'bank/zakaz.html', {'form': form, 'balance': balance})
 
 
 @login_required
@@ -184,8 +224,9 @@ def create_zakaz_obuchenie_team(request, team_id):
             return redirect('bank:zakaz_detail', zakaz_id=zakaz.pk)
     else:
         form = ZakazFormObuchenieTeam(team_id=team_id)
+        balance = Balance.objects.get(team_id=team_id)
 
-    return render(request, 'bank/zakaz.html', {'form': form})
+    return render(request, 'bank/zakaz_obuchenie.html', {'form': form, 'balance': balance})
 
 @login_required
 def zakaz_edit(request, zakaz_id):

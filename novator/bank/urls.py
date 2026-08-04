@@ -37,4 +37,5 @@ urlpatterns = [
     path('zapusk_edit/', views.zapusk_edit, name='zapusk_edit'),
     path('check-obuchenie/<int:team_id>/', views.check_obuchenie, name='check_obuchenie'),
     path('spisanie/<int:team_id>/', views.spisanie, name='spisanie'),
+    path('credit/check-credit/<int:team_id>/', views.check_credit_team, name='check_credit_team'),
 ]

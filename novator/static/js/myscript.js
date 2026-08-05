@@ -50,37 +50,54 @@ $(function() {
 
     bindBalanceLookup();
 });
-/* 
-$(function updateTotalPrice() {
-        var $form = $('form.needs-validation').first();
-        if (!$form.length) {
-            return;
-        }
 
-        $.ajax({
-            url: '/bank/compute-total-price/',
-            method: 'GET',
-            data: $form.serialize(),
-            cache: false,
-            success: function(data) {
-                var total = data.total_price;
-                if (total === null || total === undefined || total === '') {
-                    $('#total-price').val('');
-                } else {
-                    $('#total-price').val(parseFloat(total).toFixed(2));
-                }
-            },
-            error: function() {
-                $('#total-price').val('Ошибка загрузки');
+function updateTotalPrice() {
+    var $form = $('form.needs-validation').first();
+    if (!$form.length || !$('#total-price').length) {
+        return;
+    }
+
+    $.ajax({
+        url: '/bank/compute-total-price/',
+        method: 'POST',
+        data: $form.serialize(),
+        cache: false,
+        success: function(data) {
+            var $totalPrice = $('#total-price');
+            var total = data.total_price;
+            var balanceText = $('#myText').val() || '';
+            var balanceValue = parseFloat(String(balanceText).replace(/[^0-9.-]/g, ''));
+
+            if (total === null || total === undefined || total === '') {
+                $totalPrice.val('');
+                $totalPrice.removeClass('text-danger border-danger');
+                return;
             }
-        });
-    });
 
-var $orderForm = $('form.needs-validation').first();
-if ($orderForm.length) {
-    $orderForm.on('input change', 'input, select', function() {
-        updateTotalPrice();
+            var totalValue = parseFloat(total);
+            $totalPrice.val(totalValue.toFixed(2));
+
+            if (!isNaN(balanceValue) && !isNaN(totalValue) && totalValue > balanceValue) {
+                $totalPrice.addClass('text-danger border-danger');
+            } else {
+                $totalPrice.removeClass('text-danger border-danger');
+            }
+        },
+        error: function() {
+            var $totalPrice = $('#total-price');
+            $totalPrice.val('Ошибка загрузки');
+            $totalPrice.removeClass('text-danger border-danger');
+        }
     });
-    updateTotalPrice();
-} */
+}
+
+$(function() {
+    var $orderForm = $('form.needs-validation').first();
+    if ($orderForm.length) {
+        $orderForm.on('input change', 'input, select', function() {
+            updateTotalPrice();
+        });
+        updateTotalPrice();
+    }
+});
 

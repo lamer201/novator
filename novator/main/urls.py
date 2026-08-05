@@ -13,5 +13,6 @@ urlpatterns = [
     path('control/', views.control, name='control'),
     path('statistics/', views.statistics_page, name='statistics_page'),
     path('statistics-presentation/', views.presentation_statistics_page, name='presentation_statistics_page'),
+    path('statistics-presentation-end-game/', views.presentation_statistics_end_game_page, name='presentation_statistics_end_game_page'),
 
 ]

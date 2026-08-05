@@ -12,7 +12,7 @@ from main.models import ItemProperty
 from .models import Balance, Premia, Team, Zakaz, Material, ZakazItem, Status, Credit, CreditPayment, HistoryOperation
 from mtr.models import Sklad, Stock, Shipment
 from contactor.views import history as eco_history
-from .func import check_active_credit, get_sum, check_balance, make_zakaz_many_item, make_zakaz_one_item, test_balance, make_zakaz_obuchenie, check_obuchenie, check_total_price, history
+from .func import check_active_credit, get_sum, check_balance, make_zakaz_many_item, make_zakaz_one_item, test_balance, make_zakaz_obuchenie, check_obuchenie, check_total_price, history, compute_total_price_from_data
 from constance import config
 
 User = get_user_model()
@@ -395,7 +395,6 @@ def zakaz_delete(request, zakaz_id):
     if request.method == 'POST':
         items = ZakazItem.objects.filter(zakaz=zakaz)
         total_refund = sum(i.price * i.quantity for i in items)
-
         if zakaz.payment:
             try:
                 balance = Balance.objects.get(team=zakaz.team)
@@ -525,14 +524,13 @@ def bank_list(request):
         'new_zakazs': new_zakaz
     }
     return render(request, 'bank/bank.html', context)
-
-""" @login_required
+@login_required
 def compute_total_price(request):
     if request.method == 'POST':
         total_price = compute_total_price_from_data(request.POST)
     else:
         total_price = compute_total_price_from_data(request.GET)
-    return JsonResponse({'total_price': total_price}) """
+    return JsonResponse({'total_price': total_price})
 
 @login_required
 def check_new_zakazs(request):

@@ -88,7 +88,7 @@ DATABASES = {
         'NAME': 'novatory',     # Название базы данных
         'USER': 'postgres', # Имя пользователя БД
         'PASSWORD': 'postgres',            # Пароль от БД
-        'HOST': '192.168.10.193',                 # Адрес сервера БД
+        'HOST': 'localhost',                 # Адрес сервера БД
         'PORT': '5432',                      # Порт БД (стандартный для PostgreSQL)
     }
 }  

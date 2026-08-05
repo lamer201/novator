@@ -23,6 +23,8 @@
         <div class="d-flex justify-content-left align-items-center mb-4 gap-3">
           <label class="form-label me-2">Баланс</label>
           <input type ='text' id="myText" readonly class="form-control w-auto" value="{{ balance.money }}">
+          <label for="total_price" class="form-label">Итого:</label>
+          <input type="text" id="total-price" name="total-price" readonly class="form-control w-auto" value="">
         </div>
       <form method="post" class="needs-validation" novalidate>
         {% csrf_token %}
@@ -34,8 +36,7 @@
         {% endfor %}
         {% endif %}
         <div class="mb-3 mt-3">
-          <label for="total_price" class="form-label">Total Price</label>
-          <input type="text" id="total_price" name="total_price" readonly class="form-control" value="{{ total_price }}">
+          
         <div class="text-center mt-4">
           <button type="submit" class="btn btn-primary">Создать заказ</button>
           <a href="{% url 'bank:zakaz_list' %}" class="btn btn-secondary">Cancel</a>
@@ -44,4 +45,17 @@
     </div>
   </div>
   <script type="text/javascript" src="{% static 'js/myscript.js' %}"></script>
+  <script>
+    const mask = new Inputmask({
+        alias: 'numeric',
+        groupSeparator: ' ',
+        digits: 0,
+        autoGroup: true,
+        groupSize: 3,
+        placeholder: '0',
+        rightAlign: false
+    });
+    mask.mask(document.getElementById('myText'));
+    mask.mask(document.getElementById('total-price'));
+    </script>
   {% endblock %}

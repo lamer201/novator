@@ -70,7 +70,7 @@ def check_total_price(request, material_id, quantity):
         return JsonResponse({'total_price': ''}, status=404)
 
 
-""" def compute_total_price_from_data(data):
+def compute_total_price_from_data(data):
     koeff = 1.0
     try:
         koeff = float(data.get('koeff') or 1.0)
@@ -117,7 +117,7 @@ def check_total_price(request, material_id, quantity):
         total_price += material.price * koeff * quantity
 
     return total_price
- """
+
 
 def check_obuchenie(request, team_id):
     team = Team.objects.get(id=team_id)

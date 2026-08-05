@@ -16,6 +16,13 @@
                 Материально-техническое обеспечение
             </button>
         </a>
+{% comment %}         {% if user.is_superuser %}
+        <a href="{% url 'main:control' %}" style="display: block; text-decoration: none; color: inherit;">
+            <button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
+                Статистика и контроль
+            </button>
+        </a>
+        {% endif %} {% endcomment %}
         <a href="{% url 'main:control' %}" style="display: block; text-decoration: none; color: inherit;">
             <button class="btn btn-outline-secondary d-inline-flex align-items-center" type="button">
                 Статистика и контроль

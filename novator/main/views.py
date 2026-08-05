@@ -140,3 +140,7 @@ def statistics_page(request):
 @login_required
 def presentation_statistics_page(request):
     return render(request, 'main/presentation_statistics.html', build_statistics_context())
+
+@login_required
+def presentation_statistics_end_game_page(request):
+    return render(request, 'main/presentation_statistics_end_game.html', build_statistics_context())

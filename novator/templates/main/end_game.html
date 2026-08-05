@@ -24,6 +24,8 @@
       Закончить игру!
     </button>
   </form>
+  <button type="button" class="btn btn-outline-info d-inline-flex align-items-center" onclick="window.location.href='{% url 'main:presentation_statistics_end_game_page' %}'">
+      Статистика на конец игры</button>
   <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" onclick="window.location.href='{% url 'main:control' %}'">
       Вернуться на страницу контроля</button>
     </div>

@@ -99,7 +99,12 @@ class Town(models.Model):
 
 
 class ComissonScores(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='comisson_scores')
+    team = models.OneToOneField(Team, on_delete=models.CASCADE, related_name='comission_scores')
+    score1 = models.FloatField(max_length=10, verbose_name='Жюри 1')
+    score2 = models.FloatField(max_length=10, verbose_name='Жюри 2')
+    score3 = models.FloatField(max_length=10, verbose_name='Жюри 3')
+    score4 = models.FloatField(max_length=10, verbose_name='Жюри 4')
+    score5 = models.FloatField(max_length=10, verbose_name='Жюри 5')
     score = models.FloatField(max_length=10, verbose_name='Комиссионный балл')
 
     def __str__(self):

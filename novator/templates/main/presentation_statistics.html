@@ -22,6 +22,7 @@
               <tr class="border-bottom border-secondary">
                 <th class="px-4 py-3 fs-5">Команда</th>
                 <th class="px-4 py-3 fs-5">Баланс</th>
+                <th class="px-4 py-3 fs-5">Количество потребителей</th>
                 <th class="px-4 py-3 fs-5">Экологические очки</th>
                 <th class="px-4 py-3 fs-5">Достижения</th>
               </tr>
@@ -34,6 +35,9 @@
                 </td>
                 <td class="px-4 py-3">
                   <span class="fs-4 fw-semibold text-success">{{ stat.balance|floatformat:0|intcomma }} ₽</span>
+                </td>
+                <td class="px-4 py-3">
+                  <span class="fs-4 fw-semibold">{{ stat.consumers|floatformat:0|intcomma }}</span>
                 </td>
                 <td class="px-4 py-3">
                   <span class="fs-4 fw-semibold text-info">{{ stat.eco_score|floatformat:0 }}</span>

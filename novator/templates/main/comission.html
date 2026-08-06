@@ -49,6 +49,38 @@
   </div>
     </form>
     </div>
+  <div class="container my-4">
+    <h3>Баллы комиссии</h3>
+    {% if scores %}
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Команда</th>
+            <th>Оценка 1</th>
+            <th>Оценка 2</th>
+            <th>Оценка 3</th>
+            <th>Оценка 4</th>
+            <th>Оценка 5</th>
+            <th>Итоговая оценка</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for score in scores %}
+          <tr>
+          
+              <td>{{ score.team.name }}</td>
+              <td>{{ score.score1 }}</td>
+              <td>{{ score.score2 }}</td>
+              <td>{{ score.score3 }}</td>
+              <td>{{ score.score4 }}</td>
+              <td>{{ score.score5 }}</td>
+              <td>{{ score.score }}</td>
+          
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
   </div>
 </div>
 

@@ -138,7 +138,7 @@ def create_zakaz_spg(request):
         form = ZakazFormSPG(request.POST, user=request.user)
         if form.is_valid():
             zakaz = make_zakaz_one_item(form)
-            return redirect('contactor:team_detail', team_id=zakaz.team.id)
+            return redirect('bank:zakaz_detail', zakaz_id=zakaz.id)
     else:
         form = ZakazFormSPG(user=request.user)
     

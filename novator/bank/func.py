@@ -353,8 +353,9 @@ def calculate_win_score(team):
     if ZakazItem.objects.filter(zakaz__team=team, material__category__slug='premii').exists():
          for item in ZakazItem.objects.filter(zakaz__team=team, material__category__slug='premii'):
             bonus_score += float(ItemProperty.objects.get(material=item.material, property_name='winner_score').property_value)
-
-    total_points = (grs_potrebiteli * 0.001) + (total_money * 0.000001) + (team.eco_scores.score * 0.05) + bonus_score
+    if team.comission_scores.score is None:
+        team.comission_scores.score = 0
+    total_points = (grs_potrebiteli * 0.001) + (total_money * 0.000001) + (team.eco_scores.score * 0.05) + bonus_score + team.comission_scores.score
     return total_points
     
 

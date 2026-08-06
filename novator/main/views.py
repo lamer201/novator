@@ -134,13 +134,17 @@ def make_comisson_scores(request):
         form = ComissionScoreForm(request.POST, user=request.user)
         if form.is_valid():
             team = form.cleaned_data['team']
-            calculate_score = (form.cleaned_data['score1'] + form.cleaned_data['score2'] + form.cleaned_data['score3'] + form.cleaned_data['score4'] + form.cleaned_data['score5'])/5
-            comisson_score = ComissonScores.objects.create(team_id=team, score=calculate_score)
-            comisson_score.save()
+            score1 = form.cleaned_data['score1']
+            score2 = form.cleaned_data['score2']
+            score3 = form.cleaned_data['score3']
+            score4 = form.cleaned_data['score4']
+            score5 = form.cleaned_data['score5']
+            calculate_score = (score1 + score2 + score3 + score4 + score5)/5
+            comisson_score = ComissonScores.objects.update_or_create(team_id=team, defaults={'score': calculate_score, 'score1': score1, 'score2': score2,'score3': score3,'score4': score4,'score5': score5,})
             messages.success(request, f"Баллы комиссии в размере {calculate_score} для команды {team} успешно внесены.")
             return redirect('main:make_comisson_scores')
     form = ComissionScoreForm(user=request.user)
-    return render(request, 'main/comission.html', {'form': form})
+    return render(request, 'main/comission.html', {'form': form, 'scores': ComissonScores.objects.all().order_by('pk')})
 
 
 @login_required

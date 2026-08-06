@@ -12,6 +12,7 @@ from bank.func import calculate_win_score
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 user = get_user_model()
 
@@ -41,7 +42,7 @@ def index(request):
 
 def team_detail(request, team_id):
     team = Team.objects.get(id=team_id)
-    zakazy = Zakaz.objects.filter(team=team, category__slug__in=['trubi','ks','grs'], status__pk__in=['3','5'])
+    zakazy = Zakaz.objects.filter( team=team, category__slug__in=['trubi','ks','grs'], status__pk__in=['3','5']).order_by('pk')
     zakazy_items = ZakazItem.objects.filter(zakaz__in=zakazy)
     stock = Stock.objects.filter(warehouse__team=team, material__category__slug='eco')
     history_operations = HistoryOperation.objects.filter(team=team).order_by('-pk')
@@ -56,6 +57,9 @@ def create_eco_compensation(request, zakaz_id):
     eco_score = EcoScore.objects.get(team=team)
     eco_compensation = 0
     for item in ZakazItem.objects.filter(zakaz=zakaz):
+        if item.material.slug == 'grs' or item.material.slug == 'eko_grs':
+            messages.error(request, 'Компенсация не может быть оформлена для заказа с материалом ГРС.')
+            return redirect('contactor:team_detail', team_id=team.id)
         eco_compensation += (item.material.eco_compensations.amount * item.quantity)
     try:
         eco_score.score += eco_compensation
@@ -133,7 +137,8 @@ def create_zakaz_spg(request):
     if request.method == 'POST':
         form = ZakazFormSPG(request.POST, user=request.user)
         if form.is_valid():
-            return make_zakaz_one_item(form)
+            zakaz = make_zakaz_one_item(form)
+            return redirect('contactor:team_detail', team_id=zakaz.team.id)
     else:
         form = ZakazFormSPG(user=request.user)
     

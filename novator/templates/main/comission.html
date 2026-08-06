@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% load django_bootstrap5 %}
+
+{% block title %}Внесение баллов комиссии{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Внесение баллов комиссии</h2>
+    <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'main:end_game_func' %}" class="btn btn-outline-success d-inline-flex align-items-center">
+            Назад
+        </a>
+    </div>
+  </div>
+  <div class="container my-4">
+    <h3>Внести баллы комиссии</h3>
+    <form method="post" class="needs-validation" novalidate>
+      {% csrf_token %}
+      <div class="row g-3">
+        {% for field in form %}
+          {% if field.is_hidden %}
+            {{ field }}
+          {% else %}
+            <div class="col-md-2">
+              {% bootstrap_field field layout='vertical' %}
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ field.errors }}
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+          <div class="mt-4">
+    <button type="submit" class="btn btn-primary">Отправить</button>
+  </div>
+  </div>
+    </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

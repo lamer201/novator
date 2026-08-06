@@ -370,3 +370,18 @@ class KapremontFormTeam(forms.Form):
         super().__init__(*args, **kwargs)
         self.initial['team'] = self.team_id
         self.fields['team'].widget.attrs['id'] = 'team_select'
+
+
+class ComissionScoreForm(forms.Form):
+    team = forms.ChoiceField(label='Команда', choices=[], widget=forms.Select(attrs={'id': 'team-select'}))
+    score1 = forms.FloatField(label='Член комиссии 1', required=True)
+    score2 = forms.FloatField(label='Член комиссии 2', required=True)
+    score3 = forms.FloatField(label='Член комиссии 3', required=True)
+    score4 = forms.FloatField(label='Член комиссии 4', required=True)
+    score5 = forms.FloatField(label='Член комиссии 5', required=True)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        self.fields['team'].choices = get_choices(self.user)
+        self.fields['team'].widget.attrs['id'] = 'team-select'

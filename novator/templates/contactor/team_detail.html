@@ -42,7 +42,7 @@
               <td>{{ zakaz.category.name }}</td>
               <td>{{ zakaz.year }}</td>
               <td>{{ zakaz.total_km }}</td>
-              <td>{{ zakaz.total_eco_score }}</td>
+              <td>- {{ zakaz.total_eco_score }}</td>
               <td>
                 {% for item in zakazy_items %}
                   {% if item.zakaz.id == zakaz.id %}

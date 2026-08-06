@@ -196,7 +196,7 @@ def make_zakaz_one_item(form):
         message = f'Недостаточно средств на балансе для оплаты заказа. Необходимо {price}, а на балансе {balance.money}.'
         return JsonResponse({'error': message}, status=400)  
     # Create new order
-    if material.slug == 'spg':
+    if material.slug == 'grs_spg':
         status = Status.objects.get(pk=2)
     else:
         status = Status.objects.get(pk=1)

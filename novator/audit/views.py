@@ -25,6 +25,16 @@ def team_detail(request, team_id):
     zakazy = Zakaz.objects.filter(team=team,category__slug='grs', status__name='Завершен').order_by('pk')
     items = ZakazItem.objects.filter(zakaz__in=zakazy).order_by('zakaz_id')
     grs = Material.objects.filter(category__slug='grs')
+
+    for item in items:
+        current_slug = getattr(item.material, 'slug', '')
+        if current_slug == 'grs':
+            item.available_materials = grs.filter(slug__in=['grs_d', 'grs_m', 'grs_g', 'grs_f', 'grs_mk', 'grs_cz', 'grs_o5'])
+        elif current_slug in {'eko_grs', 'eco_grs'}:
+            item.available_materials = grs.filter(slug__in=['eco_grs_d', 'eco_grs_m', 'eco_grs_g', 'eco_grs_f', 'eco_grs_mk', 'eco_grs_cz', 'eco_grs_o5'])
+        else:
+            item.available_materials = grs
+
     return render(request, 'audit/team_detail.html', {'team': team,
                                                       'zakazy': zakazy,
                                                       'items': items,
@@ -78,7 +88,7 @@ def zapusk_edit(request):
             zakaz=zakaz_item.zakaz,
             eco_compensation=old_material.eco_score,
             operation_type='audit_correction',
-            description=f'Компенсация {old_material.eco_score} за изменение типа ГРС. Сейчас {team.eco_scores.score} Эко-баллов'
+            description=f'Компенсация {old_material.eco_score} за изменение типа ГРС {old_material.name}. Сейчас {team.eco_scores.score} Эко-баллов'
         )
         material = Material.objects.get(pk=request.POST.get('material_item'))
         zakaz_item.material = material
@@ -90,7 +100,7 @@ def zapusk_edit(request):
             zakaz=zakaz_item.zakaz,
             eco_compensation=-material.eco_score,
             operation_type='audit_correction',
-            description=f'Списание {material.eco_score} за изменение типа ГРС. Сейчас {team.eco_scores.score} Эко-баллов'
+            description=f'Списание {material.eco_score} за изменение типа ГРС {material.name}. Сейчас {team.eco_scores.score} Эко-баллов'
         )
         team.eco_scores.save()
         profit = ItemProperty.objects.get(material=material, property_name='cost').property_value

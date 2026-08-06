@@ -96,3 +96,11 @@ class Town(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ComissonScores(models.Model):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='comisson_scores')
+    score = models.FloatField(max_length=10, verbose_name='Комиссионный балл')
+
+    def __str__(self):
+        return f"{self.team.name} - Комиссионный балл: {self.score}"

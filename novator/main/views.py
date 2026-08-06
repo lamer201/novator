@@ -1,15 +1,17 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.db import transaction
+from django.contrib import messages
 from bank.models import Balance, Zakaz, ZakazItem
 from main.models import Status, Team, ItemProperty
 from bank.func import give_money, calculate_win_score, end_game
 from mtr.models import Stock, Sklad, Shipment
 from django.db.models import Sum
-from .models import Team
+from .models import ComissonScores, Team
 from bank.models import Balance, Zakaz
+from bank.forms import ComissionScoreForm
 from constance import config
 
 # Create your views here.
@@ -125,6 +127,20 @@ def build_statistics_context():
         'team_stats': team_stats,
         'year': config.YEAR,
     }
+
+
+def make_comisson_scores(request):
+    if request.method == 'POST':
+        form = ComissionScoreForm(request.POST, user=request.user)
+        if form.is_valid():
+            team = form.cleaned_data['team']
+            calculate_score = (form.cleaned_data['score1'] + form.cleaned_data['score2'] + form.cleaned_data['score3'] + form.cleaned_data['score4'] + form.cleaned_data['score5'])/5
+            comisson_score = ComissonScores.objects.create(team_id=team, score=calculate_score)
+            comisson_score.save()
+            messages.success(request, f"Баллы комиссии в размере {calculate_score} для команды {team} успешно внесены.")
+            return redirect('main:make_comisson_scores')
+    form = ComissionScoreForm(user=request.user)
+    return render(request, 'main/comission.html', {'form': form})
 
 
 @login_required

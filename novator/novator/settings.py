@@ -88,7 +88,7 @@ DATABASES = {
         'NAME': 'novatory',     # Название базы данных
         'USER': 'postgres', # Имя пользователя БД
         'PASSWORD': 'postgres',            # Пароль от БД
-        'HOST': '192.168.10.193',                 # Адрес сервера БД
+        'HOST': 'localhost',                 # Адрес сервера БД
         'PORT': '5432',                      # Порт БД (стандартный для PostgreSQL)
     }
 }  
@@ -126,6 +126,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATIC_ROOT = 'static_root/'
+#os.path.join(BASE_DIR, 'static_root')
 
 STATICFILES_DIRS = [
    os.path.join(BASE_DIR, "static"),

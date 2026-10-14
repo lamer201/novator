@@ -139,7 +139,11 @@ def make_comisson_scores(request):
             score3 = form.cleaned_data['score3']
             score4 = form.cleaned_data['score4']
             score5 = form.cleaned_data['score5']
-            calculate_score = (score1 + score2 + score3 + score4 + score5)/5
+            comission_col = 0
+            for i in score1,score2,score3,score4,score5:
+                if i !=0:
+                    comission_col+=1
+            calculate_score = (score1 + score2 + score3 + score4 + score5)/comission_col
             comisson_score = ComissonScores.objects.update_or_create(team_id=team, defaults={'score': calculate_score, 'score1': score1, 'score2': score2,'score3': score3,'score4': score4,'score5': score5,})
             messages.success(request, f"Баллы комиссии в размере {calculate_score} для команды {team} успешно внесены.")
             return redirect('main:make_comisson_scores')

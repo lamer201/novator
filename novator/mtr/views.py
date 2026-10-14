@@ -39,7 +39,9 @@ def check_auto(zakaz):
         #if zakaz.total_eco_score > zakaz.team.eco_scores.score:
             #messages.error(request, 'Недостаточно очков экологии для перемещения.')
             #return redirect('mtr:index')
-    if (15 * (auto_team +1)) / ((zakaz.total_items + team_total_km)) < 1:
+    if zakaz.total_items == 0:
+        True
+    elif (15 * (auto_team +1)) / ((zakaz.total_items + team_total_km)) < 1:
         return False
     return True
 
